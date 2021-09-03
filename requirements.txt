@@ -1,0 +1,4 @@
+flask
+pyyaml
+nose2
+coverage

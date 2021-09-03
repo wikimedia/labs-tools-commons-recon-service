@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang={{ session_language }}>
+	<head>
+		{% if title %}
+		<title> CRS - {{ title }}</title>
+		{% else %}
+			<title> Commons Reconciliation Service </title>
+		{% endif%}
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<link rel="stylesheet" href="https://tools-static.wmflabs.org/cdnjs/ajax/libs/twitter-bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+		<link rel="stylesheet" href="https://tools-static.wmflabs.org/cdnjs/ajax/libs/font-awesome/5.8.2/css/all.css" integrity="sha256-39jKbsb/ty7s7+4WzbtELS4vq9udJ+MDjGTD5mtxHZ0=" crossorigin="anonymous">
+		<link rel="stylesheet" href="{{url_for('static', filename='css/main.css')}}" />
+	</head>
+	<body>
+
+        {% block content%} {% endblock content%}
+    
+        <!-- Footer -->
+        <!-- <footer class="footer bg-light">
+            <div class="container">
+                <a href="https://commons.wi
+                kimedia.org/wiki" target="_blank">Link 1</a>
+                *
+                <a href="https://tools.wmflabs.org" target="_blank">tools.wmflabs.org</a>
+                *
+                <a href="https://wikitech.wikimedia.org/wiki/Wikitech:Cloud_Services_Terms_of_use" target="_blank">Term of use</a>
+                *
+                <a href="https://www.gnu.org/licenses" target="_blank"> License </a>
+                *
+                <a href="https://creativecommons.org/publicdomain/zero/1.0/deed.en" target="_blank">CCX</a>
+            </div>
+        </footer> -->
+
+        <!-- Scripts -->
+        <script src="https://tools-static.wmflabs.org/cdnjs/ajax/libs/jquery/3.3.1/jquery.js"></script>
+        <script src="https://tools-static.wmflabs.org/cdnjs/ajax/libs/twitter-bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+        
+        {% block scripts %} {% endblock scripts %}
+    
+    </body>
+</html>
