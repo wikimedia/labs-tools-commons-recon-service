@@ -3,3 +3,6 @@ config.yaml
 .vscode/
 __pycache__/
 service/__pycache__/
+.coverage
+tests/functional/main/__pycache__/
+tests/__pycache__/
