@@ -1,7 +1,44 @@
 {% extends "main/layout.html" %}
 {% block content%}
     <div class="container text-center page-header"> 
-        <h3 class="home-page-title">Wikimeida Commons Reconciliation Service</h3>
-        <hr>
+        <div class="desc-page">
+            <h1 class="service-title">
+                <a href="https://commons.wikimedia.org"> Wikimedia Commons</a>
+                Reconciliation for
+                <a href="http://openrefine.org/">OpenRefine</a>
+            </h1>
+            <p class="baseline-text">This is a reconciliation service for structed data on Wikimedia Commons to be used by OpenRefine.</p>
+            <p>Use the following URL in OpenRefine: <a href="https://wmcreconcile.toolforge.org/en/api">https://wmcreconcile.toolforge.org/en/api</a></p>
+            <p>Replacing "en" by another language code will display items and properties in your language, when they are available.</p>
+
+            <p>This interface works with OpenRefine from 2.6 rc2 onwards. It is not compatible with Google Refine.</p>
+
+            <ul>
+                <li><a href="#">Documentation of the protocol</a></li>
+                <li><a href="#">Source</a></li>
+                <li><a href="#">Workboard</a></li>
+            </ul>
+
+            <h3>Tutorials</h3>
+            <ul>
+                <li><a href="#">Tutorial 1</a></li>
+                <li><a href="#">Tutorial 2</a></li>
+                <li><a href="#">Tutorial 3</a></li>
+            </ul>
+
+            <h3>Videos</h3>
+            <ul>
+                <li><a href="#">Video 1</a></li>
+                <li><a href="#">Video 2</a></li>
+                <li><a href="#">Video 3</a></li>
+            </ul>
+
+            <h3>Documentation</h3>
+            <ul>
+                <li><a href="#">Tutorial 1</a></li>
+                <li><a href="#">Tutorial 2</a></li>
+                <li><a href="#">Tutorial 3</a></li>
+            </ul>
+        </div>
     </div>
 {% endblock content%}

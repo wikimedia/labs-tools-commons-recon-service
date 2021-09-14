@@ -1,5 +1,42 @@
 /* GLOBAL STYLES */
 
-.page-header {
-    padding-top: 20px;
+body{
+    font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
+    font-size: 14px;
+    line-height: 1.42857143;
+    color: #333;
+    background-color: #fff;
+    margin: 0;
+}
+
+.desc-page{
+    padding: 80px;
+    display: inline-block;
+    text-align: left;
+}
+
+.service-title{
+    font-size: 30px;
+}
+
+h1{
+    font-weight: 500;
+    line-height: 1.1;
+    margin-top: 20px;
+}
+
+.baseline-text{
+    font-size: 21px;
+    font-weight: 300;
+    line-height: 1.4;
+}
+
+p {
+    margin: 0 0 10px;
+}
+
+a {
+    color: #337ab7;
+    text-decoration: none;
+    background: transparent;
 }

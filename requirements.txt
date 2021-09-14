@@ -3,3 +3,4 @@ pyyaml
 nose2
 coverage
 pytest
+flask-cors
