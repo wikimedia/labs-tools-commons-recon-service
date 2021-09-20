@@ -20,7 +20,8 @@ app.config['SECRET_KEY']
 
 # we import all our blueprint routes here
 from service.main.routes import main
-
+from service.api.routes import manifest
 
 # Here we register the various blue_prints of our app
 app.register_blueprint(main)
+app.register_blueprint(manifest)
