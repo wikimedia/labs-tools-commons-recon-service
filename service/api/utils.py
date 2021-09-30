@@ -81,14 +81,18 @@ def build_results(query_data, results):
     """
 
     overall_query_object = {}
+
     query_labels = list(query_data.keys())
+    query_values = [ value['query'] for value in query_data.values() ]
     result_values = list(results.values())
 
     for i in range(0, len(result_values)):
 
         if 'pageid' in result_values[i]:
 
-            overall_query_object[query_labels[i]] = build_query_result_object(result_values[i])
+            # Files are sorted by commons api so we find the results index in query data
+            element_index_in_results = query_values.index(result_values[i]['title'])
+            overall_query_object[query_labels[i]] = build_query_result_object(result_values[element_index_in_results])
 
         else:
 
