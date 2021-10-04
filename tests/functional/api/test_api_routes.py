@@ -5,15 +5,10 @@
 
 
 import unittest
-import requests
 import json
-from unittest.mock import patch
 
-
-from flask import session
 from service import app
 
-from service.api.utils import build_results
 from service.manifest.manifest import get_api_manifest
 
 
@@ -35,25 +30,25 @@ class TestApi(unittest.TestCase):
         }
 
         self.fake_queries = {
-                'q0': {
-                    'query': 'File:Commons-logo.svg'
-                },
-                'q1': {
-                    'query': 'File:Hudson Commons (95051).jpg'
-                }
+            'q0': {
+                'query': 'File:Commons-logo.svg'
+            },
+            'q1': {
+                'query': 'File:Hudson Commons (95051).jpg'
+            }
         }
 
         self.file_not_found = {
-                'q0': {
-                    'query': 'File:filenot+found+query.jpg'
-                }
+            'q0': {
+                'query': 'File:filenot+found+query.jpg'
+            }
         }
         
         self.fake_page_not_found_result = {
-                'q0': {
-                    'result': []
-                }
+            'q0': {
+                'result': []
             }
+        }
 
     # executed after each test
     def tearDown(self):
@@ -89,7 +84,7 @@ class TestApi(unittest.TestCase):
         self.assertEqual(results['q0']['result'][0]['id'], 'M317966')
         self.assertEqual(results['q0']['result'][0]['name'], 'File:Commons-logo.svg')
         self.assertEqual(results['q1']['result'][0]['id'], 'M83241361')
-        self.assertEqual(results['q1']['result'][0]['name'], 'File:Hudson Commons (95051).jpg')        
+        self.assertEqual(results['q1']['result'][0]['name'], 'File:Hudson Commons (95051).jpg')
 
 
     def test_post_manifest_with_single_query(self):

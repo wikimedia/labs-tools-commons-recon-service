@@ -11,7 +11,7 @@ from service.api.utils import extract_file_names, make_commons_search, build_res
 manifest = Blueprint('manifest', __name__)
 
 
-@manifest.route('/<string:lang>/api', methods=['GET','POST'])
+@manifest.route('/<string:lang>/api', methods=['GET', 'POST'])
 def get_manifest(lang):
 
     if request.method == "POST":

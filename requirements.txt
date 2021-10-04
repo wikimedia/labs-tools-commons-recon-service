@@ -5,3 +5,4 @@ coverage
 pytest
 flask-cors
 requests
+flake8 == 3.7.9

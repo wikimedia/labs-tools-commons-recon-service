@@ -5,15 +5,12 @@
 
 import unittest
 
-from flask import session
-
 from service import app
 
 
 class TestMain(unittest.TestCase):
     
     # setup and teardown #
-
     # executed prior to each test
     def setUp(self):
         app.config['TESTING'] = True
@@ -26,7 +23,6 @@ class TestMain(unittest.TestCase):
         pass
     
     # tests #
-
     def test_home_route(self):
         response = self.app.get('/', follow_redirects=True)
         self.assertEqual(response.status_code, 200)

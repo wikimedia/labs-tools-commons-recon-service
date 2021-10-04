@@ -8,6 +8,7 @@ import requests
 
 from service import app
 
+
 def extract_file_names(query_data):
     """ Extract file name from the queries data.
 
@@ -61,7 +62,7 @@ def build_query_result_object(page):
     result_array = []
     query_result_object = {}
 
-    result_object['id'] = 'M' + str (page['pageid'])
+    result_object['id'] = 'M' + str(page['pageid'])
     result_object['name'] = page['title']
     result_array.append(result_object)
     query_result_object['result'] = result_array
@@ -83,7 +84,7 @@ def build_results(query_data, results):
     overall_query_object = {}
 
     query_labels = list(query_data.keys())
-    query_values = [ value['query'] for value in query_data.values() ]
+    query_values = [value['query'] for value in query_data.values()]
     result_values = list(results.values())
 
     for i in range(0, len(result_values)):
@@ -95,7 +96,6 @@ def build_results(query_data, results):
             overall_query_object[query_labels[i]] = build_query_result_object(result_values[element_index_in_results])
 
         else:
-
-            overall_query_object[query_labels[i]] = { "result":[] }
+            overall_query_object[query_labels[i]] = {'result': []}
 
     return overall_query_object
