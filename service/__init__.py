@@ -6,7 +6,7 @@ from flask_cors import CORS
 
 
 app = Flask(__name__)
-CORS(app, resources={r"/api/*": {"origins": "*"}})
+CORS(app, support_credentials=True, resources={r"/api/*": {"origins": "*"}})
 
 
 # Load configuration from YAML file
@@ -16,7 +16,7 @@ app.config.update(
 
 # Another secret key will be generated later
 app.config['SECRET_KEY']
-
+app.config['CORS_HEADERS']
 
 # we import all our blueprint routes here
 from service.main.routes import main
