@@ -1,5 +1,5 @@
 venv/
-config.yaml
+service/config.yaml
 .vscode/
 __pycache__/
 service/__pycache__/
