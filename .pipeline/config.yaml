@@ -1,7 +1,0 @@
-pipelines:
-  test:
-    blubberfile: blubber.yaml
-    stages:
-      - name: test
-      - name: candidate
-        build: production
