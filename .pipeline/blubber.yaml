@@ -1,38 +1,28 @@
-# A Blubber spec file for a Docker container, based on Debian 9
-# (stretch), where the Scap automated test suite can be run. This uses
-# Debian packages to provide Scap dependencies, as those are what are
-# used in production as well.
+# A Blubber specification for the Wikimedia commons reconciliation tool
 #
-# Note that the package lists should match those in debian/control in
-# the Scap source tree.
+#
 
 version: v4
 base: docker-registry.wikimedia.org/wikimedia-stretch
-apt:
-  packages:
-    - flake8
-    - python3
-    - python3-pytest
-    - python3-pytest-mock
-    - python3-requests
-    - python3-yaml
+  apt:
+    packages:
+      - flake8
+      - python3
+      - python3-pytest
+      - python3-requests
 runs:
   environment:
     LANG: C.UTF-8
 
 
-variants:
+viaraints:
   build:
     copies: [local]
     apt:
       packages:
-        - build-essential
         - flake8
-        - python3
         - python3-pytest
-        - python3-pytest-mock
         - python3-requests
-        - python3-yaml
   test:
     includes: [build]
     entrypoint: [scripts/check]
