@@ -93,8 +93,7 @@ def build_results(query_data, results):
 
             # Files are sorted by commons api so we find the results index in query data
             element_index_in_results = query_values.index(result_values[i]['title'])
-            overall_query_object[query_labels[i]] = build_query_result_object(result_values[element_index_in_results])
-
+            overall_query_object[query_labels[element_index_in_results]] = build_query_result_object(result_values[i])
         else:
             overall_query_object[query_labels[i]] = {'result': []}
 
