@@ -6,13 +6,20 @@ from flask_cors import CORS
 
 
 app = Flask(__name__)
-CORS(app, support_credentials=True, resources={r"/api/*": {"origins": "*"}})
+CORS(app, resources={r"/api/*": {"origins": "*"}})
 
+config_file = 'config.yaml'
 
-# Load configuration from YAML file
-__dir__ = os.path.dirname(__file__)
-app.config.update(
-    yaml.safe_load(open(os.path.join(__dir__, 'config.yaml'))))
+if os.path.isfile(config_file):
+    # Load configuration from YAML file
+    __dir__ = os.path.dirname(__file__)
+    app.config.update(
+        yaml.safe_load(open(os.path.join(__dir__, config_file))))
+
+else:
+    __dir__ = os.path.dirname(__file__)
+    app.config.update(
+        yaml.safe_load(open(os.path.join(__dir__, 'test_config.yaml'))))
 
 # Another secret key will be generated later
 app.config['SECRET_KEY']

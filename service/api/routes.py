@@ -1,4 +1,3 @@
-import sys
 import os
 import json
 
@@ -13,7 +12,7 @@ manifest = Blueprint('manifest', __name__)
 
 
 @manifest.route('/<string:lang>/api', methods=['GET', 'POST'])
-@cross_origin(support_credentials=True)
+@cross_origin()
 def get_manifest(lang):
 
     if request.method == "POST":
