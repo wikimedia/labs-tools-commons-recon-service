@@ -61,12 +61,13 @@ class TestApi(unittest.TestCase):
     def test_get_manifest(self):
         response = self.app.get('/en/api', follow_redirects=True)
         response_data = json.loads(response.data.decode('utf8'))
+        service_manifest = get_api_manifest('en', app.config['SERVICE_URL'])
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response_data['identifierSpace'], get_api_manifest('en')['identifierSpace'])
-        self.assertEqual(response_data['name'], get_api_manifest('en')['name'])
-        self.assertEqual(response_data['versions'], get_api_manifest('en')['versions'])
-        self.assertEqual(response_data['schemaSpace'], get_api_manifest('en')['schemaSpace'])
-        self.assertEqual(response_data['view']['url'], get_api_manifest('en')['view']['url'])
+        self.assertEqual(response_data['identifierSpace'], service_manifest['identifierSpace'])
+        self.assertEqual(response_data['name'], service_manifest['name'])
+        self.assertEqual(response_data['versions'], service_manifest['versions'])
+        self.assertEqual(response_data['schemaSpace'], service_manifest['schemaSpace'])
+        self.assertEqual(response_data['view']['url'], service_manifest['view']['url'])
 
 
     def test_get_manifest_with_single_query(self):

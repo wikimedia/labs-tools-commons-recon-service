@@ -1,4 +1,4 @@
-def get_api_manifest(lang):
+def get_api_manifest(lang, service_url):
     manifest = {
         "versions": ["0.2"],
         "name": "Wikimedia Commons",
@@ -6,6 +6,7 @@ def get_api_manifest(lang):
         "schemaSpace": "http://www.wikidata.org/prop/direct/",
         "view": {
             "url": "https://commons.wikimedia.org/entity/{{id}}"
-        }
+        },
+        "extend": {}
     }
     return manifest

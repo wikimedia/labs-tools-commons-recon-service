@@ -15,6 +15,8 @@ manifest = Blueprint('manifest', __name__)
 @cross_origin()
 def get_manifest(lang):
 
+    service_url = request.host_url + 'en/api'
+
     if request.method == "POST":
 
         queries = request.values.get('queries')
@@ -25,7 +27,7 @@ def get_manifest(lang):
 
     if queries is None:
 
-        return jsonify(get_api_manifest(lang))
+        return jsonify(get_api_manifest(lang, service_url))
 
     else:
 
