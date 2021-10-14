@@ -6,6 +6,7 @@
 
 import unittest
 import json
+import requests_mock
 
 from service import app
 
@@ -28,6 +29,9 @@ class TestApi(unittest.TestCase):
                 'query': 'File:Commons-logo.svg'
             }
         }
+        self.commons_response = """
+        {"continue":{"iistart":"2014-04-10T10:05:06Z","continue":"||"},"query":{"pages":{"317966":{"pageid":317966,"ns":6,"title":"File:Commons-logo.svg","imagerepository":"local","imageinfo":[{"timestamp":"2014-06-03T13:43:45Z","user":"Steinsplitter"}]}}}}
+        """
 
         self.fake_queries = {
             'q0': {
@@ -71,8 +75,12 @@ class TestApi(unittest.TestCase):
 
 
     def test_get_manifest_with_single_query(self):
-        response = self.app.get('/en/api?queries={}'.format(json.dumps(self.fake_query)), follow_redirects=True)
-        results = json.loads(response.data.decode('utf-8'))
+        with requests_mock.Mocker() as m:
+            m.get('https://commons.wikimedia.org/w/api.php?action=query&format=json&prop=imageinfo&titles=File%3ACommons-logo.svg', text=self.commons_response)
+
+            response = self.app.get('/en/api?queries={}'.format(json.dumps(self.fake_query)), follow_redirects=True)
+            results = json.loads(response.data.decode('utf-8'))
+
         self.assertEqual(response.status_code, 200)
         self.assertEqual(results['q0']['result'][0]['id'], 'M317966')
         self.assertEqual(results['q0']['result'][0]['name'], 'File:Commons-logo.svg')
