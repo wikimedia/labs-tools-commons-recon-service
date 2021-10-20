@@ -1,4 +1,5 @@
 SECRET_KEY: '$(python -c "import os; print repr(os.urandom(24))")'
 API_URL: "https://commons.wikimedia.org/w/api.php"
 CORS_HEADERS: 'application/json'
+WD_API_URL: "https://www.wikidata.org/w/api.php"
 SERVICE_URL: "https://commonsreconcile.toolforge.org"
