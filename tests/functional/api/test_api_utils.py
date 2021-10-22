@@ -79,11 +79,13 @@ class TestApiUtils(unittest.TestCase):
             "result": [
                 {
                     "id": "M317966",
-                    "name": "File:Commons-logo.svg"
+                    "name": "File:Commons-logo.svg",
+                    "score": 100,
+                    "match": True
                 }
             ]
         }
-        
+
         self.fake_pages = {
             "317966": {
                 "pageid": 317966,
@@ -115,7 +117,9 @@ class TestApiUtils(unittest.TestCase):
                 "result": [
                     {
                         "id": "M317966",
-                        "name": "File:Commons-logo.svg"
+                        "name": "File:Commons-logo.svg",
+                        "score": 100,
+                        "match": True
                     }
                 ]
             }
@@ -125,7 +129,9 @@ class TestApiUtils(unittest.TestCase):
                 "result": [
                     {
                         "id": "M317966",
-                        "name": "File:Commons-logo.svg"
+                        "name": "File:Commons-logo.svg",
+                        "score": 100,
+                        "match": True
                     }
                 ]
             },
@@ -133,7 +139,9 @@ class TestApiUtils(unittest.TestCase):
                 "result": [
                     {
                         "id": "M83241361",
-                        "name": "File:Hudson Commons (95051).jpg"
+                        "name": "File:Hudson Commons (95051).jpg",
+                        "score": 100,
+                        "match": True
                     }
                 ]
             }
@@ -226,7 +234,7 @@ class TestApiUtils(unittest.TestCase):
             response = build_extend_meta_info(self.extend_properties, self.test_lang)
 
         self.assertEqual(response, self.meta_info_data)
-    
+
 
     def test_get_page_wikitext(self):
         image_id = "M74698470"
@@ -268,7 +276,7 @@ class TestApiUtils(unittest.TestCase):
                   text=self.wd_entity_label_data_2)
 
             response = build_extend_rows_info(extend_ids, self.extend_properties, self.test_lang)
-        
+
         self.assertEqual(response["M74698470"]["P180"], json.loads(self.extend_rows_info_data)["M74698470"]["P180"])
 
 
@@ -282,10 +290,10 @@ class TestApiUtils(unittest.TestCase):
                   text=self.wd_entity_label_data_2)
             m.get("https://www.wikidata.org/w/api.php?action=wbgetentities&ids=P180&format=json",
                   text=self.test_wd_properties_data)
-            
+
             result = build_extend_result(json.loads(self.extend_data), self.test_lang)
 
-            
+
         self.assertEqual(result['meta'], json.loads(self.extend_data_result)['meta'])
         self.assertEqual(result['rows']['M74698470']['P180'], json.loads(self.extend_data_result)['rows']['M74698470']['P180'])
 

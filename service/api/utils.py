@@ -39,7 +39,7 @@ def extract_file_names(query_data):
         Returns:
             query_string (str): A concatenated string of file names.
     """
-    
+
     return '|'.join(entry['query'] for entry in query_data.values())
 
 
@@ -82,6 +82,8 @@ def build_query_result_object(page):
 
     result_object['id'] = 'M' + str(page['pageid'])
     result_object['name'] = page['title']
+    result_object['score'] = 100
+    result_object['match'] = True
     result_array.append(result_object)
     query_result_object['result'] = result_array
 
@@ -152,7 +154,7 @@ def build_extend_meta_info(properties, lang):
         Returns:
             meta (obj): meta info for data extension result.
     """
-    
+
     meta = {}
     meta = []
 
@@ -256,11 +258,11 @@ def build_extend_rows_info(extend_ids, extend_properties, lang):
             rows (obj): Row information for the data extension results.
     """
     # Make an api request with the list of ids to get metadata properties
-    
+
     rows_data = {}
     rows_data['rows'] = {}
     wd_items_list = []
-    
+
     PARAMS = {
         "action": "wbgetentities",
         "format": "json",
@@ -282,7 +284,7 @@ def build_extend_rows_info(extend_ids, extend_properties, lang):
             if prop['id'] == 'wikitext':
                 rows_data['rows'][row_data]['wikitext'] = []
                 rows_data['rows'][row_data]['wikitext'].append(get_page_wikitext(row_data))
-                
+
             else:
                 # Holds entry object for properties of an image
                 rows_data['rows'][row_data][prop['id']] = []
@@ -292,7 +294,7 @@ def build_extend_rows_info(extend_ids, extend_properties, lang):
                     pass
                 else:
                     # Iterate every statement in the claim and get the valus
-                    
+
                     for statement in extend_entities[row_data]['statements'][prop['id']]:
                         wd_items_list.append(statement['mainsnak']['datavalue']['value']['id'])
 
