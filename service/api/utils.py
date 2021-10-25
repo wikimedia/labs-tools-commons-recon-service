@@ -40,7 +40,7 @@ def extract_file_names(query_data):
             query_string (str): A concatenated string of file names.
     """
 
-    return '|'.join(entry['query'] for entry in query_data.values())
+    return "|".join(entry["query"] for entry in query_data.values())
 
 
 def make_commons_search(query_string):
@@ -60,7 +60,7 @@ def make_commons_search(query_string):
         "titles": query_string
     }
 
-    data = make_api_request(app.config['API_URL'], PARAMS)
+    data = make_api_request(app.config["API_URL"], PARAMS)
     pages = data["query"]["pages"]
 
     return pages
@@ -80,12 +80,13 @@ def build_query_result_object(page):
     result_array = []
     query_result_object = {}
 
-    result_object['id'] = 'M' + str(page['pageid'])
-    result_object['name'] = page['title']
-    result_object['score'] = 100
-    result_object['match'] = True
+    result_object["id"] = "M" + str(page["pageid"])
+    result_object["name"] = page["title"]
+    result_object["score"] = 100
+    result_object["match"] = True
+
     result_array.append(result_object)
-    query_result_object['result'] = result_array
+    query_result_object["result"] = result_array
 
     return query_result_object
 
@@ -104,18 +105,19 @@ def build_query_results(query_data, results):
     overall_query_object = {}
 
     query_labels = list(query_data.keys())
-    query_values = [value['query'] for value in query_data.values()]
+    query_values = [value["query"] for value in query_data.values()]
     result_values = list(results.values())
 
     for i in range(0, len(result_values)):
 
-        if 'pageid' in result_values[i]:
+        if "pageid" in result_values[i]:
 
             # Files are sorted by commons api so we find the results index in query data
-            element_index_in_results = query_values.index(result_values[i]['title'])
+            element_index_in_results = query_values.index(result_values[i]["title"])
             overall_query_object[query_labels[element_index_in_results]] = build_query_result_object(result_values[i])
+
         else:
-            overall_query_object[query_labels[i]] = {'result': []}
+            overall_query_object[query_labels[i]] = {"result": []}
 
     return overall_query_object
 
@@ -135,10 +137,10 @@ def make_wd_properties_request(wd_properties_list, lang):
         "format": "json",
         "languages": lang,
         "props": "labels",
-        "ids": '|'.join(id for id in wd_properties_list)
+        "ids": "|".join(id for id in wd_properties_list)
     }
 
-    data = make_api_request(app.config['WD_API_URL'], PARAMS)
+    data = make_api_request(app.config["WD_API_URL"], PARAMS)
 
     return data
 
@@ -162,24 +164,25 @@ def build_extend_meta_info(properties, lang):
     for prop in properties:
 
         # We wont check Wikidata for this property
-        if prop['id'] == 'wikitext':
+        if prop["id"] == "wikitext":
             wikitext_boject = {}
-            wikitext_boject['id'] = 'wikitext'
-            wikitext_boject['name'] = 'Wikitext'
+            wikitext_boject["id"] = "wikitext"
+            wikitext_boject["name"] = "Wikitext"
             meta.append(wikitext_boject)
 
         # case for Wikidata properties we will look for
         else:
-            # Add the property to a list for one request with all props
-            wd_request_properties.append(prop['id'])
 
-    wd_properties_data = make_wd_properties_request(wd_request_properties, lang)['entities']
+            # Add the property to a list for one request with all props
+            wd_request_properties.append(prop["id"])
+
+    wd_properties_data = make_wd_properties_request(wd_request_properties, lang)["entities"]
 
     for prop in properties:
-        if prop['id'] in wd_properties_data.keys():
+        if prop["id"] in wd_properties_data.keys():
             property_object = {}
-            property_object['id'] = prop['id']
-            property_object['name'] = wd_properties_data[prop['id']]['labels'][lang]['value']
+            property_object["id"] = prop["id"]
+            property_object["name"] = wd_properties_data[prop["id"]]["labels"][lang]["value"]
             meta.append(property_object)
     return meta
 
@@ -199,12 +202,12 @@ def get_page_wikitext(image_id):
         "format": "json",
         "prop": "wikitext",
         "language": "en",
-        "pageid": image_id.split('M')[1]
+        "pageid": image_id.split("M")[1]
     }
 
-    page_data = make_api_request(app.config['API_URL'], PARAMS)
+    page_data = make_api_request(app.config["API_URL"], PARAMS)
 
-    return page_data['parse']['wikitext']['*']
+    return page_data["parse"]["wikitext"]["*"]
 
 
 def get_wikidata_entity_label(wd_ids, lang):
@@ -223,12 +226,15 @@ def get_wikidata_entity_label(wd_ids, lang):
         "format": "json",
         "props": "labels",
         "languages": lang,
-        "ids": '|'.join(id for id in wd_ids)
+        "ids": "|".join(id for id in wd_ids)
     }
 
-    entityies_data = make_api_request(app.config['WD_API_URL'], PARAMS)
-
-    return entityies_data['entities']
+    if len(wd_ids) != 0:
+    
+        entityies_data = make_api_request(app.config["WD_API_URL"], PARAMS)
+        return entityies_data["entities"]
+    else:
+        return None
 
 
 def build_row_data(row_object, extend_ids):
@@ -246,6 +252,30 @@ def build_row_data(row_object, extend_ids):
         row_object[image_id] = {}
 
 
+def build_dataset_values(claim_object, data_value):
+    """ Build results with different datasets.
+
+        Parameters:
+            claim_object (obj): Onject to modify and add to rows .
+            data_value (obj): result object
+        Returns:
+            Modified claim_boject according to data_value.type
+    """
+
+    if data_value["type"] == "globecoordinate":
+        claim_object["str"] = str(data_value["value"]["latitude"]) + "," + str(data_value["value"]["longitude"])
+
+    elif data_value["type"] == "time":
+        claim_object["date"] = data_value["value"]["time"].split("T")[0].split("+")[1]
+
+    elif data_value["type"] == "string":
+        claim_object["str"] = data_value["value"]
+    else:
+        pass
+
+    return claim_object
+
+
 def build_extend_rows_info(extend_ids, extend_properties, lang):
     """ Build extend object of the data extension result.
 
@@ -260,53 +290,63 @@ def build_extend_rows_info(extend_ids, extend_properties, lang):
     # Make an api request with the list of ids to get metadata properties
 
     rows_data = {}
-    rows_data['rows'] = {}
+    rows_data["rows"] = {}
     wd_items_list = []
 
     PARAMS = {
         "action": "wbgetentities",
         "format": "json",
         "languages": lang,
-        "ids": '|'.join(id for id in extend_ids)
+        "ids": "|".join(id for id in extend_ids)
     }
 
-    properties = make_api_request(app.config['API_URL'], PARAMS)
+    properties = make_api_request(app.config["API_URL"], PARAMS)
 
-    extend_entities = properties['entities']
+    extend_entities = properties["entities"]
 
     # Adjust rows object by already adding
-    build_row_data(rows_data['rows'], extend_ids)
+    build_row_data(rows_data["rows"], extend_ids)
 
     # For each of the rows in the above data frame build the content
-    for row_data in rows_data['rows']:
+    for row_data in rows_data["rows"]:
         for prop in extend_properties:
 
-            if prop['id'] == 'wikitext':
-                rows_data['rows'][row_data]['wikitext'] = []
-                rows_data['rows'][row_data]['wikitext'].append(get_page_wikitext(row_data))
+            if prop["id"] == "wikitext":
+                rows_data["rows"][row_data]["wikitext"] = []
+                rows_data["rows"][row_data]["wikitext"].append(get_page_wikitext(row_data))
 
             else:
                 # Holds entry object for properties of an image
-                rows_data['rows'][row_data][prop['id']] = []
+                rows_data["rows"][row_data][prop["id"]] = []
 
                 # Check if property has been added to Commons image
-                if prop['id'] not in extend_entities[row_data]['statements'].keys():
+                if prop["id"] not in extend_entities[row_data]["statements"].keys():
                     pass
+
                 else:
                     # Iterate every statement in the claim and get the valus
+                    for statement in extend_entities[row_data]["statements"][prop["id"]]:
 
-                    for statement in extend_entities[row_data]['statements'][prop['id']]:
-                        wd_items_list.append(statement['mainsnak']['datavalue']['value']['id'])
+                        # we check for statements which do not have same dataset
+                        if statement["mainsnak"]["datavalue"]["type"] == "wikibase-entityid":
+                            wd_items_list.append(statement["mainsnak"]["datavalue"]["value"]["id"])
 
-                    wd_items_and_labels = get_wikidata_entity_label(wd_items_list, lang)
+                        else:
+                            wd_claim_object = {}
+                            data_value = statement["mainsnak"]["datavalue"]
+                            wd_claim_object = build_dataset_values({}, data_value)
+                            rows_data["rows"][row_data][prop["id"]].append(wd_claim_object)
 
+                # Make call to Wd to get the entitis info
+                wd_items_and_labels = get_wikidata_entity_label(wd_items_list, lang)
+                if wd_items_and_labels is not None:
                     for item_id in wd_items_list:
                         wd_claim_object = {}
-                        wd_claim_object['id'] = wd_items_and_labels[item_id]['id']
-                        wd_claim_object['name'] = wd_items_and_labels[item_id]['labels'][lang]['value']
-                        rows_data['rows'][row_data][prop['id']].append(wd_claim_object)
+                        wd_claim_object["id"] = wd_items_and_labels[item_id]["id"]
+                        wd_claim_object["name"] = wd_items_and_labels[item_id]["labels"][lang]["value"]
+                        rows_data["rows"][row_data][prop["id"]].append(wd_claim_object)
 
-    return rows_data['rows']
+    return rows_data["rows"]
 
 
 def build_extend_result(extend_data, lang):
@@ -322,14 +362,14 @@ def build_extend_result(extend_data, lang):
     extend_results = {}
 
     if extend_data:
-        extend_ids = extend_data['ids']
-        extend_properties = extend_data['properties']
+        extend_ids = extend_data["ids"]
+        extend_properties = extend_data["properties"]
 
         meta_info = build_extend_meta_info(extend_properties, lang)
         rows_data = build_extend_rows_info(extend_ids, extend_properties, lang)
 
-        extend_results['meta'] = meta_info
-        extend_results['rows'] = rows_data
+        extend_results["meta"] = meta_info
+        extend_results["rows"] = rows_data
 
         return extend_results
     else:

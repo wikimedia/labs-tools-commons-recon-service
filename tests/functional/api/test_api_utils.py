@@ -11,7 +11,7 @@ import json
 from service import app
 from service.api.utils import (extract_file_names, build_query_results, build_query_result_object, make_api_request,
                                build_extend_meta_info, make_wd_properties_request, build_extend_result, get_page_wikitext,
-                               get_wikidata_entity_label, build_row_data, build_extend_rows_info)
+                               get_wikidata_entity_label, build_row_data, build_extend_rows_info, build_dataset_values)
 
 
 class TestApiUtils(unittest.TestCase):
@@ -181,6 +181,14 @@ class TestApiUtils(unittest.TestCase):
         self.extend_data = """
         {"ids":["M74698470"],"properties": [{"id": "P180"}, {"id": "wikitext"}]}
         """
+        self.extend_data_value_test = """{"value": {"time": "+2009-06-23T00:00:00Z"}, "type": "time"}"""
+        self.extend_data_string_test = """{"value": "572106", "type": "string"}"""
+        self.extend_data_geocordinates_test = """{"value": {"latitude": 54.43941, "longitude": -2.972027}, "type": "globecoordinate"}"""
+
+        self.results_for_date_extend = """{"date": "2009-06-23"}"""
+        self.results_for_string_extend = """{"str": "572106"}"""
+        self.result_for_geocordinates = """{"str": "54.43941,-2.972027"}"""
+
 
     def tearDown(self):
         pass
@@ -253,7 +261,7 @@ class TestApiUtils(unittest.TestCase):
                   text=self.wd_entity_label_data_2)
             response = get_wikidata_entity_label(wd_ids, self.test_lang)
 
-        self.assertEqual(response, json.loads(self.wd_entity_label_data_2)['entities'])
+        self.assertEqual(response, json.loads(self.wd_entity_label_data_2)["entities"])
 
 
     def test_build_row_data(self):
@@ -265,7 +273,7 @@ class TestApiUtils(unittest.TestCase):
 
 
     def test_build_extend_rows_info(self):
-        extend_ids = ['M74698470']
+        extend_ids = ["M74698470"]
 
         with requests_mock.Mocker() as m:
             m.get("https://commons.wikimedia.org/w/api.php?action=wbgetentities&format=json&languages=en&ids=M74698470",
@@ -278,6 +286,18 @@ class TestApiUtils(unittest.TestCase):
             response = build_extend_rows_info(extend_ids, self.extend_properties, self.test_lang)
 
         self.assertEqual(response["M74698470"]["P180"], json.loads(self.extend_rows_info_data)["M74698470"]["P180"])
+
+
+    def test_build_dataset_values_for_date(self):
+        self.assertEqual(json.loads(self.results_for_date_extend), build_dataset_values({}, json.loads(self.extend_data_value_test)))
+
+
+    def test_build__dataset_values_for_string(self):
+        self.assertEqual(json.loads(self.results_for_string_extend), build_dataset_values({}, json.loads(self.extend_data_string_test)))
+
+
+    def test_build__dataset_values_for_geocordinates(self):
+        self.assertEqual(json.loads(self.result_for_geocordinates), build_dataset_values({}, json.loads(self.extend_data_geocordinates_test)))
 
 
     def test_build_extend_result(self):
@@ -293,9 +313,8 @@ class TestApiUtils(unittest.TestCase):
 
             result = build_extend_result(json.loads(self.extend_data), self.test_lang)
 
-
-        self.assertEqual(result['meta'], json.loads(self.extend_data_result)['meta'])
-        self.assertEqual(result['rows']['M74698470']['P180'], json.loads(self.extend_data_result)['rows']['M74698470']['P180'])
+        self.assertEqual(result["meta"], json.loads(self.extend_data_result)["meta"])
+        self.assertEqual(result["rows"]["M74698470"]["P180"], json.loads(self.extend_data_result)["rows"]["M74698470"]["P180"])
 
 
 if __name__ == "__main__":

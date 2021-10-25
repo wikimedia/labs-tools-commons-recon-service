@@ -113,7 +113,7 @@ class TestApi(unittest.TestCase):
 
 
     def test_get_manifest_with_many_queries(self):
-        titles = 'File%3ACommons-logo.svg|File:Hudson Commons (95051).jpg'
+        titles = 'File:Commons-logo.svg|File:Hudson Commons (95051).jpg'
         with requests_mock.Mocker() as m:
             m.get('https://commons.wikimedia.org/w/api.php?action=query&format=json&prop=imageinfo&titles='+titles,
                   text=self.commons_response_many_files)
