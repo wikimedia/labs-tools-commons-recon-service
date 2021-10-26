@@ -374,3 +374,78 @@ def build_extend_result(extend_data, lang):
         return extend_results
     else:
         return {}
+
+
+def build_suggest_result(prefix, wd_search_results):
+    """ Build extend result set.
+
+        Parameters:
+            prefix (str): suggest prefix entery.
+            wd_search_results (obj): Search result from Wikidata.
+
+        Returns:
+            extend_results (obj): Result for the data extension request.
+    """
+
+    suggest_result_data = {}
+    suggest_result_data["result"] = []
+    if "wikitext" in prefix.lower() or prefix.lower() in "wikitext":
+        result_item = {}
+        result_item["id"] = "wikitext"
+        result_item["name"] = "Wikitext"
+        result_item["description"] = "Text associated with the file, in wiki markup"
+
+        # Criteria to get "notable" will be determined later
+        suggest_result_data["result"].append(result_item)
+
+    if wd_search_results is not None:
+        for result in wd_search_results:
+            result_item = {}
+            result_item["id"] = result["id"]
+            result_item["name"] = result["label"]
+            result_item["description"] = result["description"]
+
+            # Criteria to get notables will be determined later
+            suggest_result_data["result"].append(result_item)
+
+    return suggest_result_data
+
+
+def make_suggest_request(suggest_prefix, lang):
+    """ Make request to Wikidata for property suggestions.
+
+        Parameters:
+            suggest_prefix (str): suggest prefix entery.
+            lang (obj): Language for the search.
+
+        Returns:
+            extend_results (obj): Result for the data extension request.
+    """
+
+    PARAMS = {
+        "action": "wbsearchentities",
+        "format": "json",
+        "language": lang,
+        "type": "property",
+        "search": suggest_prefix
+    }
+
+    wd_search_results = make_api_request(app.config['WD_API_URL'], PARAMS)
+    suggest_result_data = build_suggest_result(suggest_prefix, wd_search_results['search'])
+
+    return suggest_result_data
+
+
+def get_suggest_result(suggest_prefix, lang):
+    """ Get suggest result data.
+
+        Parameters:
+            suggest_data (obj): suggest request object.
+            lang (str): Request language.
+
+        Returns:
+            wd_search_result (obj): Suggest result data.
+    """
+    wd_search_result = make_suggest_request(suggest_prefix, lang)
+
+    return wd_search_result

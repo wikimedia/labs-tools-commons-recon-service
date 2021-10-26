@@ -6,7 +6,8 @@ from flask import Blueprint, request, jsonify
 from flask_cors import cross_origin
 
 from service.manifest.manifest import get_api_manifest
-from service.api.utils import extract_file_names, make_commons_search, build_query_results, build_extend_result
+from service.api.utils import (extract_file_names, make_commons_search, build_query_results, build_extend_result,
+                               get_suggest_result)
 
 
 manifest = Blueprint('manifest', __name__)
@@ -59,3 +60,14 @@ def get_manifest(lang):
         api_results = get_api_manifest(lang, service_url)
 
     return jsonify(api_results)
+
+
+@manifest.route('/<string:lang>/suggest/properties', methods=['GET'])
+@cross_origin()
+def get_suggest(lang):
+    prefix = request.args.get("prefix", None)
+    if prefix:
+        suggest_results = get_suggest_result(prefix, lang)
+        return jsonify(suggest_results)
+    else:
+        return "specify a prefix"

@@ -7,6 +7,12 @@ def get_api_manifest(lang, service_url):
         "view": {
             "url": "https://commons.wikimedia.org/entity/{{id}}"
         },
-        "extend": {}
+        "extend": {},
+        "suggest": {
+            "property": {
+                "service_path": lang + "/suggest/properties",
+                "service_url": service_url
+            }
+        }
     }
     return manifest

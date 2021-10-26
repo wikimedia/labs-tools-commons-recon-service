@@ -34,8 +34,7 @@ class TestApi(unittest.TestCase):
         """
 
         self.commons_response_many_files = """
-        {"batchcomplete":"","query":{"pages":{"317966":{"pageid":317966,"ns":6,"title":"File:Commons-logo.svg","imagerepository":"local","imageinfo":[{"timestamp":"2014-06-03T13:43:45Z","user":"Steinsplitter"}]},"83241361":{"pageid":83241361,"ns":6,"title":"File:Hudson Commons (95051).jpg","imagerepository":"local","imageinfo":[{"timestamp":"2019-10-21T00:01:07Z","user":"Rhododendrites"}]}}}}
-        """
+        {"batchcomplete":"","query":{"pages":{"74943657":{"pageid":74943657,"ns":6,"title":"File:Allah-green-transparent.svg","imagerepository":"local","imageinfo":[{"timestamp":"2018-12-09T10:44:53Z","user":"\u042e\u043a\u0430\u0442\u0430\u043d"}]},"317966":{"pageid":317966,"ns":6,"title":"File:Commons-logo.svg","imagerepository":"local","imageinfo":[{"timestamp":"2014-06-03T13:43:45Z","user":"Steinsplitter"}]}}}}        """
 
         self.commons_response_no_file = """
         {"batchcomplete":"","query":{"pages":{"-1":{"ns":0,"title":"''","missing":""}}}}
@@ -46,7 +45,7 @@ class TestApi(unittest.TestCase):
                 'query': 'File:Commons-logo.svg'
             },
             'q1': {
-                'query': 'File:Hudson Commons (95051).jpg'
+                'query': 'File:Allah-green-transparent.svg'
             }
         }
 
@@ -79,6 +78,8 @@ class TestApi(unittest.TestCase):
         self.extend_data_result = """
         {"meta":[{"id": "wikitext","name": "Wikitext"},{"id":"P180","name": "depicts"}],"rows":{"M74698470":{"P180":[{"id": "Q192465","name": "Chick Corea"},{"id": "Q453406","name": "Stanley Clarke"}],"wikitext": ["== {{int:filedesc}} =="]},"M83241361":{"P180":[],"wikitext": ["== {{int:filedesc}} =="]}}}
         """
+        self.suggest_mock_result = """{"search":[{"id": "P180", "label": "depicts", "description": "depicted entity"}]}"""
+        self.suggest_endpoint_data_result = """{"result":[{"description": "depicted entity", "id": "P180", "name": "depicts"}]}"""
 
     # executed after each test
     def tearDown(self):
@@ -102,7 +103,7 @@ class TestApi(unittest.TestCase):
 
     def test_get_manifest_with_single_query(self):
         with requests_mock.Mocker() as m:
-            m.get('https://commons.wikimedia.org/w/api.php?action=query&format=json&prop=imageinfo&titles=File%3ACommons-logo.svg', text=self.commons_response)
+            m.get('https://commons.wikimedia.org/w/api.php?action=query&format=json&prop=imageinfo&titles=File:Commons-logo.svg', text=self.commons_response)
 
             response = self.app.get('/en/api?queries={}'.format(json.dumps(self.fake_query)), follow_redirects=True)
             results = json.loads(response.data.decode('utf-8'))
@@ -113,9 +114,9 @@ class TestApi(unittest.TestCase):
 
 
     def test_get_manifest_with_many_queries(self):
-        titles = 'File:Commons-logo.svg|File:Hudson Commons (95051).jpg'
+
         with requests_mock.Mocker() as m:
-            m.get('https://commons.wikimedia.org/w/api.php?action=query&format=json&prop=imageinfo&titles='+titles,
+            m.get('https://commons.wikimedia.org/w/api.php?action=query&format=json&prop=imageinfo&titles=File:Commons-logo.svg|File:Allah-green-transparent.svg',
                   text=self.commons_response_many_files)
 
             response = self.app.get('/en/api?queries={}'.format(json.dumps(self.fake_queries)), follow_redirects=True)
@@ -124,8 +125,8 @@ class TestApi(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(results['q0']['result'][0]['id'], 'M317966')
         self.assertEqual(results['q0']['result'][0]['name'], 'File:Commons-logo.svg')
-        self.assertEqual(results['q1']['result'][0]['id'], 'M83241361')
-        self.assertEqual(results['q1']['result'][0]['name'], 'File:Hudson Commons (95051).jpg')
+        self.assertEqual(results['q1']['result'][0]['id'], 'M74943657')
+        self.assertEqual(results['q1']['result'][0]['name'], 'File:Allah-green-transparent.svg')
 
 
     def test_get_manifest_with_file_not_found(self):
@@ -136,6 +137,7 @@ class TestApi(unittest.TestCase):
             results = json.loads(response.data.decode('utf-8'))
         self.assertEqual(response.status_code, 200)
         self.assertEqual(results, self.fake_page_not_found_result)
+
 
     def test_extend_with_no_parameters(self):
         response = self.app.get('/en/api?extend={}'.format(json.dumps({})), follow_redirects=True)
@@ -160,6 +162,18 @@ class TestApi(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response_data['meta'], json.loads(self.extend_data_result)['meta'])
         self.assertEqual(response_data['rows']['M74698470']['P180'], json.loads(self.extend_data_result)['rows']['M74698470']['P180'])
+
+
+    def test_suggest_properties_with_true_params(self):
+        with requests_mock.Mocker() as m:
+            m.get("https://www.wikidata.org/w/api.php?action=wbsearchentities&format=json&language=en&type=property&search=depicts",
+                  text=self.suggest_mock_result)
+
+            response = self.app.get("/en/suggest/properties?prefix=depicts", follow_redirects=True)
+            response_data = json.loads(response.data.decode('utf8'))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response_data, json.loads(self.suggest_endpoint_data_result))
 
 
 if __name__ == '__main__':

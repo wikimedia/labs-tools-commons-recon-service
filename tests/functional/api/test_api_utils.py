@@ -4,14 +4,17 @@
 # Unit tests for the api utility functions in the reconciliation service
 
 
+from sys import prefix
 import unittest
+from unittest import result
 import requests_mock
 import json
 
 from service import app
 from service.api.utils import (extract_file_names, build_query_results, build_query_result_object, make_api_request,
                                build_extend_meta_info, make_wd_properties_request, build_extend_result, get_page_wikitext,
-                               get_wikidata_entity_label, build_row_data, build_extend_rows_info, build_dataset_values)
+                               get_wikidata_entity_label, build_row_data, build_extend_rows_info, build_dataset_values,
+                               build_suggest_result, get_suggest_result)
 
 
 class TestApiUtils(unittest.TestCase):
@@ -189,6 +192,8 @@ class TestApiUtils(unittest.TestCase):
         self.results_for_string_extend = """{"str": "572106"}"""
         self.result_for_geocordinates = """{"str": "54.43941,-2.972027"}"""
 
+        self.suggest_mock_result = """{"search":[{"id": "P180", "label": "depicts", "description": "depicted entity"}]}"""
+        self.suggest_endpoint_data_result = """{"result":[{"description": "depicted entity", "id": "P180", "name": "depicts"}]}"""
 
     def tearDown(self):
         pass
@@ -199,8 +204,8 @@ class TestApiUtils(unittest.TestCase):
 
 
     def test_build_query_results(self):
-        result = build_query_results(self.fake_query, self.fake_page)
-        self.assertEqual(result, self.fake_result)
+        query_result = build_query_results(self.fake_query, self.fake_page)
+        self.assertEqual(query_result, self.fake_result)
 
 
     def test_build_query_results_with_many_queries(self):
@@ -214,8 +219,8 @@ class TestApiUtils(unittest.TestCase):
 
 
     def test_build_query_result_object(self):
-        result = build_query_result_object(self.fake_page["317966"])
-        self.assertEqual(result, self.fake_query_result_object)
+        query_result = build_query_result_object(self.fake_page["317966"])
+        self.assertEqual(query_result, self.fake_query_result_object)
 
 
     def test_make_api_request(self):
@@ -311,10 +316,38 @@ class TestApiUtils(unittest.TestCase):
             m.get("https://www.wikidata.org/w/api.php?action=wbgetentities&ids=P180&format=json",
                   text=self.test_wd_properties_data)
 
-            result = build_extend_result(json.loads(self.extend_data), self.test_lang)
+            extend_result = build_extend_result(json.loads(self.extend_data), self.test_lang)
 
-        self.assertEqual(result["meta"], json.loads(self.extend_data_result)["meta"])
-        self.assertEqual(result["rows"]["M74698470"]["P180"], json.loads(self.extend_data_result)["rows"]["M74698470"]["P180"])
+        self.assertEqual(extend_result["meta"], json.loads(self.extend_data_result)["meta"])
+        self.assertEqual(extend_result["rows"]["M74698470"]["P180"], json.loads(self.extend_data_result)["rows"]["M74698470"]["P180"])
+
+
+    def test_build_suggest_result(self):
+        prefix = "depicts"
+        with requests_mock.Mocker() as m:
+            m.get("https://www.wikidata.org/w/api.php?action=wbsearchentities&format=json&language=en&type=property&search="+prefix,
+                  text=self.suggest_mock_result)
+            
+            suggest_result = build_suggest_result(prefix, json.loads(self.suggest_mock_result)['search'])
+            self.assertEqual(suggest_result, json.loads(self.suggest_endpoint_data_result))
+
+
+    def test_get_suggest_result(self):
+        with requests_mock.Mocker() as m:
+            m.get("https://www.wikidata.org/w/api.php?action=wbsearchentities&format=json&language=en&type=property&search="+prefix,
+                  text=self.suggest_mock_result)
+
+            suggest_result = get_suggest_result(prefix, self.test_lang)
+            self.assertEqual(suggest_result, json.loads(self.suggest_endpoint_data_result))
+
+
+    def test_make_suggest_request(self):
+        with requests_mock.Mocker() as m:
+            m.get("https://www.wikidata.org/w/api.php?action=wbsearchentities&format=json&language=en&type=property&search="+prefix,
+                  text=self.suggest_mock_result)
+
+            suggest_result = get_suggest_result(prefix, self.test_lang)
+            self.assertEqual(suggest_result, json.loads(self.suggest_endpoint_data_result))
 
 
 if __name__ == "__main__":
