@@ -5,7 +5,6 @@
 
 import sys
 import requests
-import json
 from service import app
 
 
@@ -30,6 +29,80 @@ def make_api_request(url, PARAMS):
         return data
 
 
+def get_image_info_from_id(image_id):
+    """ Query a commons image using id
+
+        Parameters:
+            id (str): Fueries file names
+
+        Returns:
+            file_name (str): Commons file name with id=image_id
+    """
+
+    PARAMS = {
+        "action": "query",
+        "pageids": image_id,
+        "format": "json"
+    }
+
+    file_info = make_api_request(app.config["API_URL"], PARAMS)
+    return file_info["query"]["pages"][image_id]["title"]
+
+
+def check_query_file_type(file_name):
+    """ Check file type from query data
+
+        Parameters:
+            file_name (str): File name in query data
+
+        Returns:
+            file_name (str): Processed file name ready for query
+    """
+
+    # handle links
+    if 'http' in file_name:
+        # case of just file ids given
+        if 'entity/' in file_name:
+
+            image_id = file_name.split('entity/M')[1]
+            file_name = get_image_info_from_id(image_id)
+            return file_name
+
+        else:
+            if 'Special:FilePath' in file_name:
+                file_name = file_name.split('Special:FilePath/')[1]
+            else:
+                # split with wiki/ as point
+                file_name = file_name.split('wiki/')[1]
+
+    # check for File: in file_name
+    if "File:" not in file_name:
+        file_name = "File:" + file_name
+    
+    # We have to capitalize first letter after "File:prefix"
+    first_letter = file_name.split(":")[1][0]
+    file_name = file_name.replace(first_letter, first_letter.upper(), 1)
+
+    return file_name.replace("_", " ")
+    
+
+def find_best_match_file(query_values, file_name):
+    """ Find match in list of files which was provided as queries
+
+        Parameters:
+            query_values (lst): Fueries file names
+            file_name (str): File returned from commons search
+
+        Returns:
+            match (obj): Matched file or original file if not matched
+    """
+    for value in query_values:
+        if file_name == value:
+            return value
+        else:
+            return file_name
+
+
 def extract_file_names(query_data):
     """ Extract file name from the queries data.
 
@@ -40,7 +113,7 @@ def extract_file_names(query_data):
             query_string (str): A concatenated string of file names.
     """
 
-    return "|".join(entry["query"] for entry in query_data.values())
+    return "|".join(check_query_file_type(entry["query"]) for entry in query_data.values())
 
 
 def make_commons_search(query_string):
@@ -105,19 +178,25 @@ def build_query_results(query_data, results):
     overall_query_object = {}
 
     query_labels = list(query_data.keys())
-    query_values = [value["query"] for value in query_data.values()]
+    query_values = [check_query_file_type(value["query"]) for value in query_data.values()]
+
     result_values = list(results.values())
 
     for i in range(0, len(result_values)):
 
+        best_match_file = find_best_match_file(query_values, result_values[i]["title"])
+        element_index_in_results = query_values.index(best_match_file)
+
         if "pageid" in result_values[i]:
 
-            # Files are sorted by commons api so we find the results index in query data
-            element_index_in_results = query_values.index(result_values[i]["title"])
+            # Files are sorted by commons api so we find the results index in query data\
+            # we look for index of best_match string
+            # In case where no file in our queries matches the result we return an empty set
+
             overall_query_object[query_labels[element_index_in_results]] = build_query_result_object(result_values[i])
 
         else:
-            overall_query_object[query_labels[i]] = {"result": []}
+            overall_query_object[query_labels[element_index_in_results]] = {"result": []}
 
     return overall_query_object
 
@@ -355,6 +434,26 @@ def build_extend_rows_info(extend_ids, extend_properties, lang):
     return rows_data["rows"]
 
 
+def normalize_extend_ids(extend_ids):
+    """ Get extend id from the string provided
+
+        Parameters:
+            extend_ids (obj): List of extend ids.
+
+        Returns:
+            normalized_ids (obj): Processed list of ids .
+    """
+    normalized_ids = []
+    for id in extend_ids:
+        if "http" in id:
+            id = id.split("/")[-1]
+            normalized_ids.append(id)
+        else:
+            normalized_ids.append(id)
+    return normalized_ids
+
+
+
 def build_extend_result(extend_data, lang):
     """ Combine meta and rows data to make data extension results.
 
@@ -369,10 +468,12 @@ def build_extend_result(extend_data, lang):
 
     if extend_data:
         extend_ids = extend_data["ids"]
+        normalized_ids = normalize_extend_ids(extend_ids)
+
         extend_properties = extend_data["properties"]
 
         meta_info = build_extend_meta_info(extend_properties, lang)
-        rows_data = build_extend_rows_info(extend_ids, extend_properties, lang)
+        rows_data = build_extend_rows_info(normalized_ids, extend_properties, lang)
 
         extend_results["meta"] = meta_info
         extend_results["rows"] = rows_data

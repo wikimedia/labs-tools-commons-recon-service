@@ -37,7 +37,7 @@ class TestApi(unittest.TestCase):
         {"batchcomplete":"","query":{"pages":{"74943657":{"pageid":74943657,"ns":6,"title":"File:Allah-green-transparent.svg","imagerepository":"local","imageinfo":[{"timestamp":"2018-12-09T10:44:53Z","user":"\u042e\u043a\u0430\u0442\u0430\u043d"}]},"317966":{"pageid":317966,"ns":6,"title":"File:Commons-logo.svg","imagerepository":"local","imageinfo":[{"timestamp":"2014-06-03T13:43:45Z","user":"Steinsplitter"}]}}}}        """
 
         self.commons_response_no_file = """
-        {"batchcomplete":"","query":{"pages":{"-1":{"ns":0,"title":"''","missing":""}}}}
+        {"batchcomplete":"","query":{"pages":{"-1":{"ns":0,"title":"File:Filenot found query.jpg","missing":""}}}}
         """
 
         self.fake_queries = {
@@ -53,7 +53,7 @@ class TestApi(unittest.TestCase):
 
         self.file_not_found = {
             'q0': {
-                'query': 'File:filenot+found+query.jpg'
+                'query': 'File:filenot found query.jpg'
             }
         }
 
@@ -131,7 +131,7 @@ class TestApi(unittest.TestCase):
 
     def test_get_manifest_with_file_not_found(self):
         with requests_mock.Mocker() as m:
-            m.get('https://commons.wikimedia.org/w/api.php?action=query&format=json&prop=imageinfo&titles=File:filenot+found+query.jpg',
+            m.get('https://commons.wikimedia.org/w/api.php?action=query&format=json&prop=imageinfo&titles=File:filenot found query.jpg',
                   text=self.commons_response_no_file)
             response = self.app.get('/en/api?queries={}'.format(json.dumps(self.file_not_found)), follow_redirects=True)
             results = json.loads(response.data.decode('utf-8'))

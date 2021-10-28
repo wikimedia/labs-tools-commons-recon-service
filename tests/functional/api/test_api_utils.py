@@ -14,7 +14,8 @@ from service import app
 from service.api.utils import (extract_file_names, build_query_results, build_query_result_object, make_api_request,
                                build_extend_meta_info, make_wd_properties_request, build_extend_result, get_page_wikitext,
                                get_wikidata_entity_label, build_row_data, build_extend_rows_info, build_dataset_values,
-                               build_suggest_result, get_suggest_result)
+                               build_suggest_result, get_suggest_result, find_best_match_file, check_query_file_type,
+                               normalize_extend_ids)
 
 
 class TestApiUtils(unittest.TestCase):
@@ -28,7 +29,7 @@ class TestApiUtils(unittest.TestCase):
 
         self.file_not_found = {
             "q0": {
-                "query": "File:filenot+found+query.jpg"
+                "query": "File:Filenot_found_query.jpg"
             }
         }
         self.fake_page_not_found = {
@@ -194,6 +195,7 @@ class TestApiUtils(unittest.TestCase):
 
         self.suggest_mock_result = """{"search":[{"id": "P180", "label": "depicts", "description": "depicted entity"}]}"""
         self.suggest_endpoint_data_result = """{"result":[{"description": "depicted entity", "id": "P180", "name": "depicts"}]}"""
+        self.commons_id_page_query_data = """{"batchcomplete":"","query":{"pages":{"317966":{"pageid":317966,"ns":6,"title":"File:Commons-logo.svg"}}}}"""
 
     def tearDown(self):
         pass
@@ -348,6 +350,44 @@ class TestApiUtils(unittest.TestCase):
 
             suggest_result = get_suggest_result(prefix, self.test_lang)
             self.assertEqual(suggest_result, json.loads(self.suggest_endpoint_data_result))
+
+
+    def test_find_best_match_for_match(self):
+        match_result = find_best_match_file(['File:Commons-logo.svg'], "File:Commons-logo.svg")
+        self.assertEqual(match_result, "File:Commons-logo.svg")
+
+
+    def test_find_best_match_for_no_match(self):
+        match_result = find_best_match_file(['File:Commons-logo.svg'], self.file_not_found["q0"]["query"])
+        self.assertEqual(match_result, self.file_not_found["q0"]["query"])
+
+
+    def test_check_query_file_type_link(self):
+        check_result = check_query_file_type('https://commons.wikimedia.org/wiki/File:Commons-logo.svg')
+        self.assertEqual(check_result, "File:Commons-logo.svg")
+
+
+    def test_check_query_file_type_without_prefix(self):
+        check_result = check_query_file_type('Commons-logo.svg')
+        self.assertEqual(check_result, "File:Commons-logo.svg")
+
+
+    def test_check_query_file_type_with_prefix(self):
+        check_result = check_query_file_type('File:Commons-logo.svg')
+        self.assertEqual(check_result, "File:Commons-logo.svg")
+
+
+    def test_check_query_file_type_with_image_id(self):
+        with requests_mock.Mocker() as m:
+            m.get("https://commons.wikimedia.org/w/api.php?action=query&format=json&pageids=317966",
+                  text=self.commons_id_page_query_data)
+            response = check_query_file_type('https://commons.wikimedia.org/entity/M317966')
+        self.assertEqual(response, "File:Commons-logo.svg")
+
+
+    def test_normalize_extend_ids(self):
+        normalized_extends = normalize_extend_ids(["M83241361", "https://commons.wikimedia.org/entity/M93645431"])
+        self.assertEqual(normalized_extends, ["M83241361", "M93645431"])
 
 
 if __name__ == "__main__":

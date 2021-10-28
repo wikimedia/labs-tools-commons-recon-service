@@ -37,7 +37,7 @@ def get_manifest(lang):
 
         # Action is queries
         if action[0] == 'queries':
-
+            
             queries_data = json.loads(data)
             pages = make_commons_search(extract_file_names(queries_data))
             api_results = build_query_results(queries_data, pages)
