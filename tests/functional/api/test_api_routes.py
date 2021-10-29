@@ -169,7 +169,7 @@ class TestApi(unittest.TestCase):
             m.get("https://www.wikidata.org/w/api.php?action=wbsearchentities&format=json&language=en&type=property&search=depicts",
                   text=self.suggest_mock_result)
 
-            response = self.app.get("/en/suggest/properties?prefix=depicts", follow_redirects=True)
+            response = self.app.get("/en/api/suggest/properties?prefix=depicts", follow_redirects=True)
             response_data = json.loads(response.data.decode('utf8'))
 
         self.assertEqual(response.status_code, 200)

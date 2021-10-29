@@ -10,7 +10,7 @@ def get_api_manifest(lang, service_url):
         "extend": {},
         "suggest": {
             "property": {
-                "service_path": lang + "/suggest/properties",
+                "service_path": "/suggest/properties",
                 "service_url": service_url
             }
         }

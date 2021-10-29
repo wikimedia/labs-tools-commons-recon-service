@@ -62,7 +62,7 @@ def get_manifest(lang):
     return jsonify(api_results)
 
 
-@manifest.route('/<string:lang>/suggest/properties', methods=['GET'])
+@manifest.route('/<string:lang>/api/suggest/properties', methods=['GET'])
 @cross_origin()
 def get_suggest(lang):
     prefix = request.args.get("prefix", None)
