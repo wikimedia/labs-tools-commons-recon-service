@@ -230,7 +230,7 @@ def get_wikidata_entity_label(wd_ids, lang):
     }
 
     if len(wd_ids) != 0:
-    
+
         entityies_data = make_api_request(app.config["WD_API_URL"], PARAMS)
         return entityies_data["entities"]
     else:
@@ -291,7 +291,6 @@ def build_extend_rows_info(extend_ids, extend_properties, lang):
 
     rows_data = {}
     rows_data["rows"] = {}
-    wd_items_list = []
 
     PARAMS = {
         "action": "wbgetentities",
@@ -316,6 +315,8 @@ def build_extend_rows_info(extend_ids, extend_properties, lang):
                 rows_data["rows"][row_data]["wikitext"].append(get_page_wikitext(row_data))
 
             else:
+                wd_items_list = []
+
                 # Holds entry object for properties of an image
                 rows_data["rows"][row_data][prop["id"]] = []
 
