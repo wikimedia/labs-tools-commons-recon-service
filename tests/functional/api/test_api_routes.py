@@ -56,7 +56,7 @@ class TestApi(unittest.TestCase):
                 'query': 'File:filenot+found+query.jpg'
             }
         }
-        
+
         self.fake_page_not_found_result = {
             'q0': {
                 'result': []
@@ -76,7 +76,7 @@ class TestApi(unittest.TestCase):
         {"parse":{"title":"File:Chick Corea & Stanley Clarke.jpg","pageid":74698470,"wikitext":{"*":"== {{int:filedesc}} =="}}}
         """
         self.extend_data_result = """
-        {"meta":[{"id": "wikitext","name": "Wikitext"},{"id":"P180","name": "depicts"}],"rows":{"M74698470":{"P180":[{"id": "Q192465","name": "Chick Corea"},{"id": "Q453406","name": "Stanley Clarke"}],"wikitext": ["== {{int:filedesc}} =="]},"M83241361":{"P180":[],"wikitext": ["== {{int:filedesc}} =="]}}}
+        {"meta":[{"id": "wikitext","name": "Wikitext"},{"id":"P180","name": "depicts"}],"rows":{"M74698470":{"P180":[{"id": "Q192465","name": "Chick Corea"},{"id": "Q453406","name": "Stanley Clarke"}],"wikitext": [{"str":"== {{int:filedesc}} =="}]},"M83241361":{"P180":[],"wikitext": ["== {{int:filedesc}} =="]}}}
         """
         self.suggest_mock_result = """{"search":[{"id": "P180", "label": "depicts", "description": "depicted entity"}]}"""
         self.suggest_endpoint_data_result = """{"result":[{"description": "depicted entity", "id": "P180", "name": "depicts"}]}"""
@@ -121,7 +121,7 @@ class TestApi(unittest.TestCase):
 
             response = self.app.get('/en/api?queries={}'.format(json.dumps(self.fake_queries)), follow_redirects=True)
             results = json.loads(response.data.decode('utf-8'))
-        
+
         self.assertEqual(response.status_code, 200)
         self.assertEqual(results['q0']['result'][0]['id'], 'M317966')
         self.assertEqual(results['q0']['result'][0]['name'], 'File:Commons-logo.svg')

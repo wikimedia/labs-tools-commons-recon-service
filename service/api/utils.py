@@ -312,7 +312,7 @@ def build_extend_rows_info(extend_ids, extend_properties, lang):
 
             if prop["id"] == "wikitext":
                 rows_data["rows"][row_data]["wikitext"] = []
-                rows_data["rows"][row_data]["wikitext"].append(get_page_wikitext(row_data))
+                rows_data["rows"][row_data]["wikitext"].append({"str": get_page_wikitext(row_data)})
 
             else:
                 wd_items_list = []
