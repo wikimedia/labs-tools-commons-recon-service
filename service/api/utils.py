@@ -157,9 +157,9 @@ def build_extend_meta_info(properties, lang):
             meta (obj): meta info for data extension result.
     """
 
+    wd_prop_check = False
     meta = {}
     meta = []
-
     wd_request_properties = []
     for prop in properties:
 
@@ -175,15 +175,20 @@ def build_extend_meta_info(properties, lang):
 
             # Add the property to a list for one request with all props
             wd_request_properties.append(prop["id"])
+            # Check for wikidata properties to make request
 
-    wd_properties_data = make_wd_properties_request(wd_request_properties, lang)["entities"]
+            wd_prop_check = True
+    # If there was a WD property added then make request
+    if wd_prop_check:
 
-    for prop in properties:
-        if prop["id"] in wd_properties_data.keys():
-            property_object = {}
-            property_object["id"] = prop["id"]
-            property_object["name"] = wd_properties_data[prop["id"]]["labels"][lang]["value"]
-            meta.append(property_object)
+        wd_properties_data = make_wd_properties_request(wd_request_properties, lang)["entities"]
+
+        for prop in properties:
+            if prop["id"] in wd_properties_data.keys():
+                property_object = {}
+                property_object["id"] = prop["id"]
+                property_object["name"] = wd_properties_data[prop["id"]]["labels"][lang]["value"]
+                meta.append(property_object)
     return meta
 
 
