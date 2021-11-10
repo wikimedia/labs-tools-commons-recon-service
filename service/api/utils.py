@@ -145,7 +145,6 @@ def make_wd_properties_request(wd_properties_list, lang):
     return data
 
 
-
 def build_extend_meta_info(properties, lang):
     """ Build meta info for data extension object.
 
@@ -168,6 +167,7 @@ def build_extend_meta_info(properties, lang):
             wikitext_boject = {}
             wikitext_boject["id"] = "wikitext"
             wikitext_boject["name"] = "Wikitext"
+
             meta.append(wikitext_boject)
 
         # case for Wikidata properties we will look for
