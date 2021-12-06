@@ -26,9 +26,7 @@ app.config['SECRET_KEY']
 app.config['CORS_HEADERS']
 
 # we import all our blueprint routes here
-from service.main.routes import main
-from service.api.routes import manifest
+from service.reconcile.reconcile import reconcile
 
 # Here we register the various blue_prints of our app
-app.register_blueprint(main)
-app.register_blueprint(manifest)
+app.register_blueprint(reconcile)

@@ -1,19 +1,26 @@
-import os
 import json
-import sys
 
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, render_template
 from flask_cors import cross_origin
 
+from service.commons.commons import make_commons_search
 from service.manifest.manifest import get_api_manifest
-from service.api.utils import (extract_file_names, make_commons_search, build_query_results, build_extend_result,
-                               get_suggest_result)
+from service.reconcile.processresults import (build_extend_result, build_query_results, get_suggest_result)
+from service.reconcile.handlefile import extract_file_names
 
 
-manifest = Blueprint('manifest', __name__)
+reconcile = Blueprint('reconcile', __name__)
 
 
-@manifest.route('/<string:lang>/api', methods=['GET', 'POST'])
+@cross_origin()
+@reconcile.route('/', methods=['GET', 'POST'])
+def home():
+    return render_template('main/home.html',
+                           host=request.host_url + 'en/api',
+                           title='Home')
+
+
+@reconcile.route('/<string:lang>/api', methods=['GET', 'POST'])
 @cross_origin()
 def get_manifest(lang):
 
@@ -62,7 +69,7 @@ def get_manifest(lang):
     return jsonify(api_results)
 
 
-@manifest.route('/<string:lang>/api/suggest/properties', methods=['GET'])
+@reconcile.route('/<string:lang>/api/suggest/properties', methods=['GET'])
 @cross_origin()
 def get_suggest(lang):
     prefix = request.args.get("prefix", None)

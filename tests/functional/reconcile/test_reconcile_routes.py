@@ -89,6 +89,11 @@ class TestApi(unittest.TestCase):
     # tests #
 
 
+    def test_home_route(self):
+        response = self.app.get('/', follow_redirects=True)
+        self.assertEqual(response.status_code, 200)
+
+
     def test_get_manifest_without_queries(self):
         response = self.app.get('/en/api', follow_redirects=True)
         response_data = json.loads(response.data.decode('utf8'))

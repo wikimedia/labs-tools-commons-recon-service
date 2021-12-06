@@ -1,142 +1,12 @@
-#!/usr/bin/env python3
-
+# !/usr/bin/env python3
 # Authors: Eugene Egbe
-# Utility functions for api blueprint
+# Process reconciliation query results
 
-import sys
-import requests
+
 from service import app
-
-
-def make_api_request(url, PARAMS):
-    """ Makes request to an end point to get data
-
-        Parameters:
-            url (str): The Api url end point
-            PARAMS (obj): The parameters to be used as arguments
-
-        Returns:
-            data (obj): Json object of the recieved data.
-    """
-
-    S = requests.Session()
-    r = S.get(url=url, params=PARAMS)
-    data = r.json()
-
-    if data is None:
-        return {}
-    else:
-        return data
-
-
-def get_image_info_from_id(image_id):
-    """ Query a commons image using id
-
-        Parameters:
-            id (str): Fueries file names
-
-        Returns:
-            file_name (str): Commons file name with id=image_id
-    """
-
-    PARAMS = {
-        "action": "query",
-        "pageids": image_id,
-        "format": "json"
-    }
-
-    file_info = make_api_request(app.config["API_URL"], PARAMS)
-    return file_info["query"]["pages"][image_id]["title"]
-
-
-def check_query_file_type(file_name):
-    """ Check file type from query data
-
-        Parameters:
-            file_name (str): File name in query data
-
-        Returns:
-            file_name (str): Processed file name ready for query
-    """
-
-    # handle links
-    if 'http' in file_name:
-        # case of just file ids given
-        if 'entity/' in file_name:
-
-            image_id = file_name.split('entity/M')[1]
-            file_name = get_image_info_from_id(image_id)
-            return file_name
-
-        else:
-            if 'Special:FilePath' in file_name:
-                file_name = file_name.split('Special:FilePath/')[1]
-            else:
-                # split with wiki/ as point
-                file_name = file_name.split('wiki/')[1]
-
-    # check for File: in file_name
-    if "File:" not in file_name:
-        file_name = "File:" + file_name
-    
-    # We have to capitalize first letter after "File:prefix"
-    first_letter = file_name.split(":")[1][0]
-    file_name = file_name.replace(first_letter, first_letter.upper(), 1)
-
-    return file_name.replace("_", " ")
-    
-
-def find_best_match_file(query_values, file_name):
-    """ Find match in list of files which was provided as queries
-
-        Parameters:
-            query_values (lst): Fueries file names
-            file_name (str): File returned from commons search
-
-        Returns:
-            match (obj): Matched file or original file if not matched
-    """
-    for value in query_values:
-        if file_name == value:
-            return value
-        else:
-            return file_name
-
-
-def extract_file_names(query_data):
-    """ Extract file name from the queries data.
-
-        Parameters:
-            query_data (obj): The queries data object.
-
-        Returns:
-            query_string (str): A concatenated string of file names.
-    """
-
-    return "|".join(check_query_file_type(entry["query"]) for entry in query_data.values())
-
-
-def make_commons_search(query_string):
-    """ Makes request to commons API to get images info
-
-        Parameters:
-            query_string (str): The concatenated file names.
-
-        Returns:
-            pages (obj): Json object of image inforamtion.
-    """
-
-    PARAMS = {
-        "action": "query",
-        "format": "json",
-        "prop": "imageinfo",
-        "titles": query_string
-    }
-
-    data = make_api_request(app.config["API_URL"], PARAMS)
-    pages = data["query"]["pages"]
-
-    return pages
+from service.commons import commons
+from service.wikidata import wikidata
+from service.reconcile import handlefile
 
 
 def build_query_result_object(page):
@@ -164,6 +34,7 @@ def build_query_result_object(page):
     return query_result_object
 
 
+
 def build_query_results(query_data, results):
     """ Builds result using image search results.
 
@@ -178,13 +49,13 @@ def build_query_results(query_data, results):
     overall_query_object = {}
 
     query_labels = list(query_data.keys())
-    query_values = [check_query_file_type(value["query"]) for value in query_data.values()]
+    query_values = [handlefile.check_query_file_type(value["query"]) for value in query_data.values()]
 
     result_values = list(results.values())
 
     for i in range(0, len(result_values)):
 
-        best_match_file = find_best_match_file(query_values, result_values[i]["title"])
+        best_match_file = handlefile.find_best_match_file(query_values, result_values[i]["title"])
         element_index_in_results = query_values.index(best_match_file)
 
         if "pageid" in result_values[i]:
@@ -199,29 +70,6 @@ def build_query_results(query_data, results):
             overall_query_object[query_labels[element_index_in_results]] = {"result": []}
 
     return overall_query_object
-
-
-def make_wd_properties_request(wd_properties_list, lang):
-    """ Makes request to Wikidata to get properties.
-
-        Parameters:
-            wd_properties_list (list): list of properties.
-
-        Returns:
-            data (obj): Entities which represent the properties.
-    """
-
-    PARAMS = {
-        "action": "wbgetentities",
-        "format": "json",
-        "languages": lang,
-        "props": "labels",
-        "ids": "|".join(id for id in wd_properties_list)
-    }
-
-    data = make_api_request(app.config["WD_API_URL"], PARAMS)
-
-    return data
 
 
 def build_extend_meta_info(properties, lang):
@@ -260,7 +108,7 @@ def build_extend_meta_info(properties, lang):
     # If there was a WD property added then make request
     if wd_prop_check:
 
-        wd_properties_data = make_wd_properties_request(wd_request_properties, lang)["entities"]
+        wd_properties_data = wikidata.make_wd_properties_request(wd_request_properties, lang)["entities"]
 
         for prop in properties:
             if prop["id"] in wd_properties_data.keys():
@@ -269,56 +117,6 @@ def build_extend_meta_info(properties, lang):
                 property_object["name"] = wd_properties_data[prop["id"]]["labels"][lang]["value"]
                 meta.append(property_object)
     return meta
-
-
-def get_page_wikitext(image_id):
-    """ Fetch wikitext for a commons image.
-
-        Parameters:
-            image_id (str): ID of the commons image.
-
-        Returns:
-            wikitext (str): Wikitext of the requested page.
-    """
-
-    PARAMS = {
-        "action": "parse",
-        "format": "json",
-        "prop": "wikitext",
-        "language": "en",
-        "pageid": image_id.split("M")[1]
-    }
-
-    page_data = make_api_request(app.config["API_URL"], PARAMS)
-
-    return page_data["parse"]["wikitext"]["*"]
-
-
-def get_wikidata_entity_label(wd_ids, lang):
-    """ Fetch the lable of a Wikidata entity.
-
-        Parameters:
-            wd_id (str): WD id of the entity.
-            lang (str): language of the label.
-
-        Returns:
-            label (str): label of wikidata item with ID wd_id.
-    """
-
-    PARAMS = {
-        "action": "wbgetentities",
-        "format": "json",
-        "props": "labels",
-        "languages": lang,
-        "ids": "|".join(id for id in wd_ids)
-    }
-
-    if len(wd_ids) != 0:
-
-        entityies_data = make_api_request(app.config["WD_API_URL"], PARAMS)
-        return entityies_data["entities"]
-    else:
-        return None
 
 
 def build_row_data(row_object, extend_ids):
@@ -383,7 +181,7 @@ def build_extend_rows_info(extend_ids, extend_properties, lang):
         "ids": "|".join(id for id in extend_ids)
     }
 
-    properties = make_api_request(app.config["API_URL"], PARAMS)
+    properties = commons.make_api_request(app.config["API_URL"], PARAMS)
 
     extend_entities = properties["entities"]
 
@@ -396,7 +194,7 @@ def build_extend_rows_info(extend_ids, extend_properties, lang):
 
             if prop["id"] == "wikitext":
                 rows_data["rows"][row_data]["wikitext"] = []
-                rows_data["rows"][row_data]["wikitext"].append({"str": get_page_wikitext(row_data)})
+                rows_data["rows"][row_data]["wikitext"].append({"str": commons.get_page_wikitext(row_data)})
 
             else:
                 wd_items_list = []
@@ -423,7 +221,7 @@ def build_extend_rows_info(extend_ids, extend_properties, lang):
                             rows_data["rows"][row_data][prop["id"]].append(wd_claim_object)
 
                 # Make call to Wd to get the entitis info
-                wd_items_and_labels = get_wikidata_entity_label(wd_items_list, lang)
+                wd_items_and_labels = wikidata.get_wikidata_entity_label(wd_items_list, lang)
                 if wd_items_and_labels is not None:
                     for item_id in wd_items_list:
                         wd_claim_object = {}
@@ -451,7 +249,6 @@ def normalize_extend_ids(extend_ids):
         else:
             normalized_ids.append(id)
     return normalized_ids
-
 
 
 def build_extend_result(extend_data, lang):
@@ -518,31 +315,6 @@ def build_suggest_result(prefix, wd_search_results):
     return suggest_result_data
 
 
-def make_suggest_request(suggest_prefix, lang):
-    """ Make request to Wikidata for property suggestions.
-
-        Parameters:
-            suggest_prefix (str): suggest prefix entery.
-            lang (obj): Language for the search.
-
-        Returns:
-            extend_results (obj): Result for the data extension request.
-    """
-
-    PARAMS = {
-        "action": "wbsearchentities",
-        "format": "json",
-        "language": lang,
-        "type": "property",
-        "search": suggest_prefix
-    }
-
-    wd_search_results = make_api_request(app.config['WD_API_URL'], PARAMS)
-    suggest_result_data = build_suggest_result(suggest_prefix, wd_search_results['search'])
-
-    return suggest_result_data
-
-
 def get_suggest_result(suggest_prefix, lang):
     """ Get suggest result data.
 
@@ -553,6 +325,6 @@ def get_suggest_result(suggest_prefix, lang):
         Returns:
             wd_search_result (obj): Suggest result data.
     """
-    wd_search_result = make_suggest_request(suggest_prefix, lang)
+    wd_search_result = wikidata.make_suggest_request(suggest_prefix, lang)
 
     return wd_search_result
