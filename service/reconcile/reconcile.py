@@ -1,5 +1,4 @@
 import json
-
 from flask import Blueprint, request, jsonify, render_template, make_response
 from flask_cors import cross_origin
 
@@ -9,7 +8,8 @@ from service.properties.property_suggest import get_property_suggest_results
 from service.reconcile.processresults import (build_extend_result, build_query_results, get_suggest_result, get_entity_suggest_result)
 from service.reconcile.handlefile import extract_file_names
 from service.reconcile.media_preview import build_preview_content
-
+from service.utils.utils import catch_custom_exception, validate_input, return_invalid_input_object
+from service.normalize.normalize import InvalidInputDataException
 
 reconcile = Blueprint('reconcile', __name__)
 
@@ -19,11 +19,12 @@ reconcile = Blueprint('reconcile', __name__)
 def home():
     return render_template('main/home.html',
                            host=request.host_url + 'en/api',
-                           title='Home')
+                           title='Home'), 200
 
 
 @reconcile.route('/<string:lang>/api', methods=['GET', 'POST'])
 @cross_origin()
+@catch_custom_exception
 def get_manifest(lang):
 
     service_url = request.host_url + lang + '/api'
@@ -46,7 +47,13 @@ def get_manifest(lang):
 
         # Action is queries
         if action[0] == 'queries':
-            
+
+            # Validate user input data
+            try:
+                validate_input(data)
+            except InvalidInputDataException as e:
+                return return_invalid_input_object(e), 400
+
             queries_data = json.loads(data)
             pages = make_commons_search(extract_file_names(queries_data))
             api_results = build_query_results(queries_data, pages)
@@ -54,8 +61,17 @@ def get_manifest(lang):
         # Action is extend
         elif action[0] == 'extend':
 
-            # return extend data here
-            api_results = build_extend_result(json.loads(data), lang)
+            # Validate user input extend data
+            try:
+                validate_input(data)
+            except InvalidInputDataException as e:
+
+                return jsonify(return_invalid_input_object(e)), 400
+
+            extend_data = json.loads(data)
+
+            # return extend data
+            api_results = build_extend_result(extend_data, lang)
 
         # Action is not neither of the actions we support
         # Present service manifest
@@ -68,16 +84,17 @@ def get_manifest(lang):
 
         api_results = get_api_manifest(lang, service_url)
 
-    return jsonify(api_results)
+    return jsonify(api_results), 200
 
 
 @reconcile.route('/<string:lang>/api/suggest/properties', methods=['GET'])
 @cross_origin()
+@catch_custom_exception
 def get_suggest(lang):
     prefix = request.args.get("prefix", None)
     if prefix:
         suggest_results = get_suggest_result(prefix, lang)
-        return jsonify(suggest_results)
+        return jsonify(suggest_results), 200
     else:
         return "specify a prefix"
 
