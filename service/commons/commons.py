@@ -124,3 +124,23 @@ def get_media_preview_url(media_id):
         return media_url, media_title
     else:
         return "", "File not Found"
+
+
+def get_commons_file_captions(image_id):
+    """Get file captions for a commons file with id:imageid
+
+    Args:
+        image_id (str): Image id of the file
+
+    Returns:
+        Obj: A dictionary of Captions(labels) in different languages
+    """
+
+    PARAMS = {
+        "action": "wbgetentities",
+        "format": "json",
+        "sites": "commonswiki",
+        "ids": image_id
+    }
+    page_data = make_api_request(app.config["API_URL"], PARAMS)
+    return page_data["entities"][str(image_id)]["labels"]

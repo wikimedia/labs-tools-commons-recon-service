@@ -79,6 +79,6 @@ def make_suggest_request(suggest_prefix, lang):
     }
 
     wd_search_results = commons.make_api_request(app.config['WD_API_URL'], PARAMS)
-    suggest_result_data = processresults.build_suggest_result(suggest_prefix, wd_search_results['search'])
+    suggest_result_data = processresults.build_suggest_result(suggest_prefix, lang, wd_search_results['search'])
 
     return suggest_result_data

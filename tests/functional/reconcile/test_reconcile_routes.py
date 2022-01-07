@@ -50,6 +50,7 @@ class TestApi(unittest.TestCase):
         }
 
         self.extend_data = {"ids": ["M74698470"], "properties": [{"id": "P180"}, {"id": "wikitext"}]}
+        self.extend_caption_data = {"ids": ["M86236603"], "properties": [{"id": "Cen"}]}
 
         self.file_not_found = {
             'q0': {
@@ -78,9 +79,11 @@ class TestApi(unittest.TestCase):
         self.extend_data_result = """
         {"meta":[{"id": "wikitext","name": "Wikitext"},{"id":"P180","name": "depicts"}],"rows":{"M74698470":{"P180":[{"id": "Q192465","name": "Chick Corea"},{"id": "Q453406","name": "Stanley Clarke"}],"wikitext": [{"str":"== {{int:filedesc}} =="}]},"M83241361":{"P180":[],"wikitext": ["== {{int:filedesc}} =="]}}}
         """
-
+        self.sample_caption_file_info = """{"batchcomplete": "","query": {"pages": {"86236603": {"pageid": 86236603,"ns": 6,"title": "File:COVID-19_Outbreak_World_Map.svg"}}}}"""
         self.suggest_mock_result = """{"search":[{"id": "P180", "label": "depicts", "description": "depicted entity"}]}"""
         self.suggest_endpoint_data_result = """{"result":[{"description": "depicted entity", "id": "P180", "name": "depicts"}]}"""
+        self.sample_commons_captions_data = """{"entities":{"M86236603":{"labels":{"en":{"language":"en","value": "World map of total cumulative confirmed COVID-19 cases by country."}}}}}"""
+        self.caption_extend_data_result = """{"meta":[{"id":"Cen","name":"Caption [en]"}],"rows":{"M86236603":{"Cen":[{"str": "World map of total cumulative confirmed COVID-19 cases by country."}]}}}"""
 
         self.commons_id_page_query_data = """{"batchcomplete":"","query":{"pages":{"317966":{"pageid":317966,"ns":6,"title":"File:Commons-logo.svg"}}}}"""
         self.commons_media_url_query_data = """{"continue":{"iistart":"2014-04-10T10:05:06Z"},"query":{"pages":{"317966":{"pageid":317966,"title":"File:Commons-logo.svg","imageinfo":[{"url":"https://upload.wikimedia.org/wikipedia/commons/4/4a/Commons-logo.svg"}]}}}}"""
@@ -195,40 +198,20 @@ class TestApi(unittest.TestCase):
         self.assertEqual(response_data, json.loads(self.suggest_endpoint_data_result))
 
 
-    def test_preview_media_file(self):
+    def test_extend_for_captions(self):
         with requests_mock.Mocker() as m:
-            m.get("https://commons.wikimedia.org/w/api.php?action=query&pageids=317966&format=json&prop=imageinfo&iiprop=url",
-                  text=self.commons_media_url_query_data)
-            response = self.app.get('/en/api/preview?id={}'.format('M317966'), follow_redirects=True)
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data.decode(), self.sample_preview_result)
+            m.get("https://commons.wikimedia.org/w/api.php?action=query&pageids=86236603&format=json",
+                  text=self.sample_caption_file_info)
+            m.get("https://commons.wikimedia.org/w/api.php?action=wbgetentities&format=json&sites=commonswiki&ids=M86236603",
+                  text=self.sample_commons_captions_data)
+            m.get("https://commons.wikimedia.org/w/api.php?action=wbgetentities&format=json&languages=en&ids=M86236603",
+                  text=self.sample_commons_captions_data)
 
-
-    def test_extend_data_with_monolingual_text(self):
-        with requests_mock.Mocker() as m:
-            m.get("https://commons.wikimedia.org/w/api.php?action=wbgetentities&format=json&languages=en&ids=M3630407",
-                  text=self.monolingual_extend_mock_data)
-            m.get("https://www.wikidata.org/w/api.php?action=wbgetentities&format=json&languages=en&props=labels&ids=P9533",
-                  text=self.wd_monolingual_extend_mock_data)
-
-            response = self.app.get('/en/api?extend={}'.format(json.dumps(self.mono_lingual_query_extend_data)), follow_redirects=True)
+            response = self.app.get('/en/api?extend={}'.format(json.dumps(self.extend_caption_data)), follow_redirects=True)
             response_data = json.loads(response.data.decode('utf8'))
-
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response_data, json.loads(self.exted_monolingual_text_result))
-
-
-    def test_extend_data_with_quantity(self):
-        with requests_mock.Mocker() as m:
-            m.get("https://commons.wikimedia.org/w/api.php?action=wbgetentities&format=json&languages=en&ids=M83698127",
-                  text=self.quantity_extend_mock_data)
-            m.get("https://www.wikidata.org/w/api.php?action=wbgetentities&format=json&languages=en&props=labels&ids=P6790",
-                  text=self.quantity_wd_mock_data)
-            response = self.app.get('/en/api?extend={}'.format(json.dumps(self.extend_data_for_quantity)), follow_redirects=True)
-
-        response_data = json.loads(response.data.decode('utf8'))
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response_data, json.loads(self.exted_quantity_result))
+            self.assertEqual(response.status_code, 200)
+            self.assertEqual(response_data['meta'], json.loads(self.caption_extend_data_result)['meta'])
+            self.assertEqual(response_data['rows'], json.loads(self.caption_extend_data_result)['rows'])
 
 
 if __name__ == '__main__':

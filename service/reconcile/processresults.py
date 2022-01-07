@@ -3,6 +3,7 @@
 # Process reconciliation query results
 
 
+import re
 from service import app
 from service.commons import commons
 from service.wikidata import wikidata
@@ -84,6 +85,7 @@ def build_extend_meta_info(properties, lang):
     """
 
     wd_prop_check = False
+
     meta = {}
     meta = []
     wd_request_properties = []
@@ -97,6 +99,13 @@ def build_extend_meta_info(properties, lang):
 
             meta.append(wikitext_boject)
 
+        elif prop["id"].startswith("C"):
+            caption_object = {}
+            caption_object["id"] = prop["id"]
+            caption_object["name"] = "Caption [" + prop["id"].split("C")[1] + "]"
+
+            meta.append(caption_object)
+
         # case for Wikidata properties we will look for
         else:
 
@@ -107,15 +116,17 @@ def build_extend_meta_info(properties, lang):
             wd_prop_check = True
     # If there was a WD property added then make request
     if wd_prop_check:
+        wd_prop_request_data = wikidata.make_wd_properties_request(wd_request_properties, lang)
+        if "entities" in wd_prop_request_data.keys():
+            wd_properties_data = wd_prop_request_data["entities"]
 
-        wd_properties_data = wikidata.make_wd_properties_request(wd_request_properties, lang)["entities"]
+            for prop in properties:
+                if prop["id"] in wd_properties_data.keys():
+                    property_object = {}
+                    property_object["id"] = prop["id"]
+                    property_object["name"] = wd_properties_data[prop["id"]]["labels"][lang]["value"]
+                    meta.append(property_object)
 
-        for prop in properties:
-            if prop["id"] in wd_properties_data.keys():
-                property_object = {}
-                property_object["id"] = prop["id"]
-                property_object["name"] = wd_properties_data[prop["id"]]["labels"][lang]["value"]
-                meta.append(property_object)
     return meta
 
 
@@ -173,6 +184,7 @@ def build_extend_rows_info(extend_ids, extend_properties, lang):
 
     rows_data = {}
     rows_data["rows"] = {}
+    captions_langs = []
 
     PARAMS = {
         "action": "wbgetentities",
@@ -182,7 +194,9 @@ def build_extend_rows_info(extend_ids, extend_properties, lang):
     }
 
     properties = commons.make_api_request(app.config["API_URL"], PARAMS)
-    extend_entities = properties["entities"]
+
+    if "entities" in properties.keys():
+        extend_entities = properties["entities"]
 
     # Adjust rows object by already adding
     build_row_data(rows_data["rows"], extend_ids)
@@ -195,6 +209,18 @@ def build_extend_rows_info(extend_ids, extend_properties, lang):
                 rows_data["rows"][row_data]["wikitext"] = []
                 rows_data["rows"][row_data]["wikitext"].append({"str": commons.get_page_wikitext(row_data)})
 
+            elif prop["id"].startswith("C"):
+                captions_langs.append(prop["id"].split("C")[1])
+
+                rows_data["rows"][row_data] = {}
+                wmc_caption_data = commons.get_commons_file_captions(extend_ids[0])
+                wmc_caption_data_keys = list(wmc_caption_data.keys())
+                for lang_key in wmc_caption_data_keys:
+                    if lang_key in captions_langs:
+                        rows_data["rows"][row_data]["C" + lang_key] = []
+                        caption_object = {}
+                        caption_object['str'] = wmc_caption_data[lang_key]["value"]
+                        rows_data["rows"][row_data]["C" + lang_key].append(caption_object)
             else:
                 wd_items_list = []
 
@@ -276,7 +302,6 @@ def build_extend_result(extend_data, lang):
     if extend_data:
         extend_ids = extend_data["ids"]
         normalized_ids = normalize_extend_ids(extend_ids)
-
         extend_properties = extend_data["properties"]
 
         meta_info = build_extend_meta_info(extend_properties, lang)
@@ -290,7 +315,7 @@ def build_extend_result(extend_data, lang):
         return {}
 
 
-def build_suggest_result(prefix, wd_search_results):
+def build_suggest_result(prefix, lang, wd_search_results):
     """ Build extend result set.
 
         Parameters:
@@ -303,6 +328,16 @@ def build_suggest_result(prefix, wd_search_results):
 
     suggest_result_data = {}
     suggest_result_data["result"] = []
+
+    if prefix.startswith("C") or prefix.startswith("c") and len(prefix) > 1:
+        caption_lang = prefix[1:]
+        if bool(re.match("[a-zA-Z0-9-]", caption_lang)):
+            result_item = {}
+            result_item["id"] = "C" + caption_lang
+            result_item["name"] = "Caption [" + caption_lang + "]"
+            result_item["description"] = "Image Captions"
+            suggest_result_data["result"].append(result_item)
+
     if "wikitext" in prefix.lower() or prefix.lower() in "wikitext":
         result_item = {}
         result_item["id"] = "wikitext"
@@ -312,7 +347,8 @@ def build_suggest_result(prefix, wd_search_results):
         # Criteria to get "notable" will be determined later
         suggest_result_data["result"].append(result_item)
 
-    if wd_search_results is not None:
+
+    elif wd_search_results is not None:
         for result in wd_search_results:
             result_item = {}
             result_item["id"] = result["id"]

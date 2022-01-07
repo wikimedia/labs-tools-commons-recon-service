@@ -6,7 +6,6 @@
 
 from sys import prefix
 import unittest
-from unittest import result
 import requests_mock
 import json
 
@@ -186,7 +185,8 @@ class TestApiUtils(unittest.TestCase):
         self.results_for_date_extend = """{"date": "2009-06-23"}"""
         self.results_for_string_extend = """{"str": "572106"}"""
         self.result_for_geocordinates = """{"str": "54.43941,-2.972027"}"""
-        self.commons_id_page_query_data = """{"continue":{"iistart":"2014-04-10T10:05:06Z","continue":"||"},"query":{"pages":{"317966":{"pageid":317966,"ns":6,"title":"File:Commons-logo.svg","imagerepository":"local","imageinfo":[{"url":"https://upload.wikimedia.org/wikipedia/commons/4/4a/Commons-logo.svg"}]}}}}"""
+        self.commons_id_page_query_data = """{"batchcomplete":"","query":{"pages":{"317966":{"pageid":317966,"ns":6,"title":"File:Commons-logo.svg"}}}}"""
+        self.suggest_properties_caption_data = """{"result":[{"description": "Image Captions","id": "Cen","name": "Caption [en]"}]}"""
 
 
     def tearDown(self):
@@ -325,14 +325,9 @@ class TestApiUtils(unittest.TestCase):
         self.assertEqual(normalized_extends, ["M83241361", "M93645431"])
 
 
-    def test_get_media_preview_url(self):
-        with requests_mock.Mocker() as m:
-            m.get("https://commons.wikimedia.org/w/api.php?action=query&pageids=317966&format=json&prop=imageinfo&iiprop=url",
-                  text=self.commons_id_page_query_data)
-
-            media_url, media_title = get_media_preview_url('M317966')
-        self.assertEqual(media_url, "https://upload.wikimedia.org/wikipedia/commons/4/4a/Commons-logo.svg")
-        self.assertEqual(media_title, "File:Commons-logo.svg")
+    def test_build_suggest_result_for_caption(self):
+        result = processresults.build_suggest_result("Cen", "en", {})
+        self.assertEqual(result, json.loads(self.suggest_properties_caption_data))
 
 
 if __name__ == "__main__":

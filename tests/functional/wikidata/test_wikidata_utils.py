@@ -91,7 +91,7 @@ class TestWikidata(unittest.TestCase):
             m.get("https://www.wikidata.org/w/api.php?action=wbsearchentities&format=json&language=en&type=property&search="+prefix,
                   text=self.suggest_mock_result)
             
-            suggest_result = build_suggest_result(prefix, json.loads(self.suggest_mock_result)['search'])
+            suggest_result = build_suggest_result(prefix, self.test_lang, json.loads(self.suggest_mock_result)['search'])
             self.assertEqual(suggest_result, json.loads(self.suggest_endpoint_data_result))
 
 
