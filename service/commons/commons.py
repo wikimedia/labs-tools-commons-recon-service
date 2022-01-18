@@ -25,7 +25,7 @@ def make_api_request(url, PARAMS):
     data = r.json()
 
     if data is None:
-        return {}
+        return None
     else:
         return data
 
@@ -47,8 +47,10 @@ def get_image_info_from_id(image_id):
     }
 
     file_info = make_api_request(app.config["API_URL"], PARAMS)
-    return file_info["query"]["pages"][image_id]["title"]
-
+    if "query" in file_info.keys() and "title" in file_info["query"]["pages"][image_id].keys():
+        return file_info["query"]["pages"][image_id]["title"]
+    else:
+        return None
 
 
 def make_commons_search(query_string):
@@ -94,3 +96,31 @@ def get_page_wikitext(image_id):
 
     page_data = make_api_request(app.config["API_URL"], PARAMS)
     return page_data["parse"]["wikitext"]["*"]
+
+
+def get_media_preview_url(media_id):
+    """Get the url of a Commons media file
+
+    Args:
+        media_id (str): ID of the media file
+
+    Returns:
+        url, title (str): strings of media file url and the media title
+    """
+    media_id = media_id.split("M")[1]
+    PARAMS = {
+        "action": "query",
+        "pageids": media_id,
+        "format": "json",
+        "prop": "imageinfo",
+        "iiprop": "url"
+    }
+
+    media_data = make_api_request(app.config["API_URL"], PARAMS)
+
+    if "query" in media_data.keys() and media_id in media_data["query"]["pages"].keys():
+        media_title = media_data["query"]["pages"][media_id]["title"]
+        media_url = media_data["query"]["pages"][media_id]["imageinfo"][0]["url"]
+        return media_url, media_title
+    else:
+        return "", "File not Found"

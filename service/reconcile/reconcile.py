@@ -7,6 +7,7 @@ from service.commons.commons import make_commons_search
 from service.manifest.manifest import get_api_manifest
 from service.reconcile.processresults import (build_extend_result, build_query_results, get_suggest_result)
 from service.reconcile.handlefile import extract_file_names
+from service.reconcile.media_preview import build_preview_content
 
 
 reconcile = Blueprint('reconcile', __name__)
@@ -24,7 +25,7 @@ def home():
 @cross_origin()
 def get_manifest(lang):
 
-    service_url = request.host_url + 'en/api'
+    service_url = request.host_url + lang + '/api'
 
     api_results = {}
     action = []
@@ -78,3 +79,12 @@ def get_suggest(lang):
         return jsonify(suggest_results)
     else:
         return "specify a prefix"
+
+
+@reconcile.route('/<string:lang>/api/preview', methods=['GET'])
+@cross_origin()
+def preview_media_file(lang):
+    media_id = request.args.get("id", None)
+
+    preview_content = build_preview_content(media_id)
+    return preview_content

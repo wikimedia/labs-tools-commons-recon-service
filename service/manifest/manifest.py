@@ -1,4 +1,5 @@
 def get_api_manifest(lang, service_url):
+    print(service_url)
     manifest = {
         "versions": ["0.2"],
         "name": "Wikimedia Commons",
@@ -6,6 +7,11 @@ def get_api_manifest(lang, service_url):
         "schemaSpace": "http://www.wikidata.org/prop/direct/",
         "view": {
             "url": "https://commons.wikimedia.org/entity/{{id}}"
+        },
+        "preview": {
+            "url": service_url + "/preview?id={{id}}",
+            "width": 200,
+            "height": 100
         },
         "extend": {},
         "suggest": {

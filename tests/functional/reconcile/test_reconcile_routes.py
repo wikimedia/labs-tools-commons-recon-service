@@ -81,10 +81,13 @@ class TestApi(unittest.TestCase):
         self.suggest_mock_result = """{"search":[{"id": "P180", "label": "depicts", "description": "depicted entity"}]}"""
         self.suggest_endpoint_data_result = """{"result":[{"description": "depicted entity", "id": "P180", "name": "depicts"}]}"""
 
+        self.commons_id_page_query_data = """{"batchcomplete":"","query":{"pages":{"317966":{"pageid":317966,"ns":6,"title":"File:Commons-logo.svg"}}}}"""
+        self.commons_media_url_query_data = """{"continue":{"iistart":"2014-04-10T10:05:06Z","continue":"||"},"query":{"pages":{"317966":{"pageid":317966,"ns":6,"title":"File:Commons-logo.svg","imagerepository":"local","imageinfo":[{"url":"https://upload.wikimedia.org/wikipedia/commons/4/4a/Commons-logo.svg","descriptionurl":"https://commons.wikimedia.org/wiki/File:Commons-logo.svg","descriptionshorturl":"https://commons.wikimedia.org/w/index.php?curid=317966"}]}}}}"""
+        self.sample_preview_result = """<html><head><meta charset='utf-8' /></head><body> <img src=https://upload.wikimedia.org/wikipedia/commons/4/4a/Commons-logo.svg width=100            height=50 style='float: left'><p>File:Commons-logo.svg </p> </body></html>"""
+
     # executed after each test
     def tearDown(self):
         pass
-
 
     # tests #
 
@@ -179,6 +182,15 @@ class TestApi(unittest.TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response_data, json.loads(self.suggest_endpoint_data_result))
+
+
+    def test_preview_media_file(self):
+        with requests_mock.Mocker() as m:
+            m.get("https://commons.wikimedia.org/w/api.php?action=query&prop=imageinfo&iiprop=url&pageids=317966&format=json",
+                  text=self.commons_media_url_query_data)
+        response = self.app.get('/en/api/preview?id=M317966', follow_redirects=True)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data.decode(), self.sample_preview_result)
 
 
 if __name__ == '__main__':
