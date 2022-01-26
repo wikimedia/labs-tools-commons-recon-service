@@ -78,14 +78,20 @@ class TestApi(unittest.TestCase):
         self.extend_data_result = """
         {"meta":[{"id": "wikitext","name": "Wikitext"},{"id":"P180","name": "depicts"}],"rows":{"M74698470":{"P180":[{"id": "Q192465","name": "Chick Corea"},{"id": "Q453406","name": "Stanley Clarke"}],"wikitext": [{"str":"== {{int:filedesc}} =="}]},"M83241361":{"P180":[],"wikitext": ["== {{int:filedesc}} =="]}}}
         """
+
         self.suggest_mock_result = """{"search":[{"id": "P180", "label": "depicts", "description": "depicted entity"}]}"""
         self.suggest_endpoint_data_result = """{"result":[{"description": "depicted entity", "id": "P180", "name": "depicts"}]}"""
 
         self.commons_id_page_query_data = """{"batchcomplete":"","query":{"pages":{"317966":{"pageid":317966,"ns":6,"title":"File:Commons-logo.svg"}}}}"""
-        self.commons_media_url_query_data = """{"continue":{"iistart":"2014-04-10T10:05:06Z","continue":"||"},"query":{"pages":{"317966":{"pageid":317966,"ns":6,"title":"File:Commons-logo.svg","imagerepository":"local","imageinfo":[{"url":"https://upload.wikimedia.org/wikipedia/commons/4/4a/Commons-logo.svg","descriptionurl":"https://commons.wikimedia.org/wiki/File:Commons-logo.svg","descriptionshorturl":"https://commons.wikimedia.org/w/index.php?curid=317966"}]}}}}"""
+        self.commons_media_url_query_data = """{"continue":{"iistart":"2014-04-10T10:05:06Z"},"query":{"pages":{"317966":{"pageid":317966,"title":"File:Commons-logo.svg","imageinfo":[{"url":"https://upload.wikimedia.org/wikipedia/commons/4/4a/Commons-logo.svg"}]}}}}"""
         self.sample_preview_result = """<html><head><meta charset='utf-8' /></head><body> <img src=https://upload.wikimedia.org/wikipedia/commons/4/4a/Commons-logo.svg width=100            height=50 style='float: left'><p>File:Commons-logo.svg </p> </body></html>"""
 
+        self.monolingual_extend_mock_data = """{"entities":{"M3630407": {"statements":{"P9533":[{"mainsnak":{"datavalue": {"value": {"text": "Idiot","language": "de"},"type": "monolingualtext"}}}]}}}}"""
+        self.wd_monolingual_extend_mock_data = """{"entities":{"P9533":{"type": "property","datatype": "monolingualtext","id":"P9533","labels":{"en": {"language": "en","value": "audio transcription"}}}}}"""
+        self.exted_monolingual_text_result = """{"meta":[{"id":"P9533","name":"audio transcription"}],"rows":{"M3630407":{"P9533":[{"str": "Idiot [de]"}]}}}"""
+        self.mono_lingual_query_extend_data = {"ids": ["M3630407"], "properties": [{"id": "P9533"}]}
     # executed after each test
+
     def tearDown(self):
         pass
 
@@ -186,11 +192,25 @@ class TestApi(unittest.TestCase):
 
     def test_preview_media_file(self):
         with requests_mock.Mocker() as m:
-            m.get("https://commons.wikimedia.org/w/api.php?action=query&prop=imageinfo&iiprop=url&pageids=317966&format=json",
+            m.get("https://commons.wikimedia.org/w/api.php?action=query&pageids=317966&format=json&prop=imageinfo&iiprop=url",
                   text=self.commons_media_url_query_data)
-        response = self.app.get('/en/api/preview?id=M317966', follow_redirects=True)
+            response = self.app.get('/en/api/preview?id={}'.format('M317966'), follow_redirects=True)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data.decode(), self.sample_preview_result)
+
+
+    def test_extend_data_with_monolingual_text(self):
+        with requests_mock.Mocker() as m:
+            m.get("https://commons.wikimedia.org/w/api.php?action=wbgetentities&format=json&languages=en&ids=M3630407",
+                  text=self.monolingual_extend_mock_data)
+            m.get("https://www.wikidata.org/w/api.php?action=wbgetentities&format=json&languages=en&props=labels&ids=P9533",
+                  text=self.wd_monolingual_extend_mock_data)
+
+            response = self.app.get('/en/api?extend={}'.format(json.dumps(self.mono_lingual_query_extend_data)), follow_redirects=True)
+            response_data = json.loads(response.data.decode('utf8'))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response_data, json.loads(self.exted_monolingual_text_result))
 
 
 if __name__ == '__main__':

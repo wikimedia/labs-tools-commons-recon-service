@@ -182,7 +182,6 @@ def build_extend_rows_info(extend_ids, extend_properties, lang):
     }
 
     properties = commons.make_api_request(app.config["API_URL"], PARAMS)
-
     extend_entities = properties["entities"]
 
     # Adjust rows object by already adding
@@ -213,6 +212,12 @@ def build_extend_rows_info(extend_ids, extend_properties, lang):
                         # we check for statements which do not have same dataset
                         if statement["mainsnak"]["datavalue"]["type"] == "wikibase-entityid":
                             wd_items_list.append(statement["mainsnak"]["datavalue"]["value"]["id"])
+
+                        elif statement["mainsnak"]["datavalue"]["type"] == "monolingualtext":
+                            text = statement["mainsnak"]["datavalue"]["value"]['text']
+                            text_lang = statement["mainsnak"]["datavalue"]["value"]["language"]
+                            rows_data["rows"][row_data][prop["id"]] = []
+                            rows_data["rows"][row_data][prop["id"]].append({"str": text + " [" + text_lang + "]"})
 
                         else:
                             wd_claim_object = {}
