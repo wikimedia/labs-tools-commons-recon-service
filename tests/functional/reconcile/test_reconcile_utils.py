@@ -187,7 +187,7 @@ class TestApiUtils(unittest.TestCase):
         self.results_for_string_extend = """{"str": "572106"}"""
         self.result_for_geocordinates = """{"str": "54.43941,-2.972027"}"""
         self.commons_id_page_query_data = """{"continue":{"iistart":"2014-04-10T10:05:06Z","continue":"||"},"query":{"pages":{"317966":{"pageid":317966,"ns":6,"title":"File:Commons-logo.svg","imagerepository":"local","imageinfo":[{"url":"https://upload.wikimedia.org/wikipedia/commons/4/4a/Commons-logo.svg"}]}}}}"""
-        self.commons_media_url_query_data = """{"query":{"pages":{"317966":{"title":"File:Commons-logo.svg","imageinfo":[{"url":"https://upload.wikimedia.org/wikipedia/commons/4/4a/Commons-logo.svg"}]}}}}"""
+
 
     def tearDown(self):
         pass

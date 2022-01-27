@@ -90,6 +90,11 @@ class TestApi(unittest.TestCase):
         self.wd_monolingual_extend_mock_data = """{"entities":{"P9533":{"type": "property","datatype": "monolingualtext","id":"P9533","labels":{"en": {"language": "en","value": "audio transcription"}}}}}"""
         self.exted_monolingual_text_result = """{"meta":[{"id":"P9533","name":"audio transcription"}],"rows":{"M3630407":{"P9533":[{"str": "Idiot [de]"}]}}}"""
         self.mono_lingual_query_extend_data = {"ids": ["M3630407"], "properties": [{"id": "P9533"}]}
+
+        self.extend_data_for_quantity = {"ids": ["M83698127"], "properties": [{"id": "P6790"}]}
+        self.quantity_extend_mock_data = """{"entities":{"M83698127": {"statements":{"P6790":[{"mainsnak":{"datavalue":{"value": {"amount": "+1.9"},"type": "quantity"}}}]}}}}"""
+        self.quantity_wd_mock_data = """{"entities":{"P6790":{"type":"property","datatype":"quantity","id":"P6790","labels":{"en":{"language":"en","value":"f-number"}}}},"success":1}"""
+        self.exted_quantity_result = """{"meta":[{"id": "P6790", "name": "f-number"}],"rows":{"M83698127":{"P6790":[{"str": "+1.9"}]}}}"""
     # executed after each test
 
     def tearDown(self):
@@ -211,6 +216,19 @@ class TestApi(unittest.TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response_data, json.loads(self.exted_monolingual_text_result))
+
+
+    def test_extend_data_with_quantity(self):
+        with requests_mock.Mocker() as m:
+            m.get("https://commons.wikimedia.org/w/api.php?action=wbgetentities&format=json&languages=en&ids=M83698127",
+                  text=self.quantity_extend_mock_data)
+            m.get("https://www.wikidata.org/w/api.php?action=wbgetentities&format=json&languages=en&props=labels&ids=P6790",
+                  text=self.quantity_wd_mock_data)
+            response = self.app.get('/en/api?extend={}'.format(json.dumps(self.extend_data_for_quantity)), follow_redirects=True)
+
+        response_data = json.loads(response.data.decode('utf8'))
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response_data, json.loads(self.exted_quantity_result))
 
 
 if __name__ == '__main__':

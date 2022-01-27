@@ -219,6 +219,11 @@ def build_extend_rows_info(extend_ids, extend_properties, lang):
                             rows_data["rows"][row_data][prop["id"]] = []
                             rows_data["rows"][row_data][prop["id"]].append({"str": text + " [" + text_lang + "]"})
 
+                        elif statement["mainsnak"]["datavalue"]["type"] == "quantity":
+                            amount = statement["mainsnak"]["datavalue"]["value"]["amount"]
+                            rows_data["rows"][row_data][prop["id"]] = []
+                            rows_data["rows"][row_data][prop["id"]].append({"str": amount})
+
                         else:
                             wd_claim_object = {}
                             data_value = statement["mainsnak"]["datavalue"]
