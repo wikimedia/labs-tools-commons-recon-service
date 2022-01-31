@@ -30,25 +30,25 @@ def make_api_request(url, PARAMS):
         return data
 
 
-def get_image_info_from_id(image_id):
+def get_media_info_from_id(media_id):
     """ Query a commons image using id
 
         Parameters:
             id (str): Fueries file names
 
         Returns:
-            file_name (str): Commons file name with id=image_id
+            file_name (str): Commons file name with id=media_id
     """
 
     PARAMS = {
         "action": "query",
-        "pageids": image_id,
+        "pageids": media_id,
         "format": "json"
     }
 
     file_info = make_api_request(app.config["API_URL"], PARAMS)
-    if "query" in file_info.keys() and "title" in file_info["query"]["pages"][image_id].keys():
-        return file_info["query"]["pages"][image_id]["title"]
+    if "query" in file_info.keys() and "title" in file_info["query"]["pages"][media_id].keys():
+        return file_info["query"]["pages"][media_id]["title"]
     else:
         return None
 
@@ -76,11 +76,11 @@ def make_commons_search(query_string):
     return pages
 
 
-def get_page_wikitext(image_id):
+def get_page_wikitext(media_id):
     """ Fetch wikitext for a commons image.
 
         Parameters:
-            image_id (str): ID of the commons image.
+            media_id (str): ID of the commons image.
 
         Returns:
             wikitext (str): Wikitext of the requested page.
@@ -91,7 +91,7 @@ def get_page_wikitext(image_id):
         "format": "json",
         "prop": "wikitext",
         "language": "en",
-        "pageid": image_id.split("M")[1]
+        "pageid": media_id.split("M")[1]
     }
 
     page_data = make_api_request(app.config["API_URL"], PARAMS)

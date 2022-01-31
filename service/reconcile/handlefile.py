@@ -21,8 +21,8 @@ def check_query_file_type(file_name):
         # case of just file ids given
         if 'entity/' in file_name:
 
-            image_id = file_name.split('entity/M')[1]
-            file_name = commons.get_image_info_from_id(image_id)
+            media_id = file_name.split('entity/M')[1]
+            file_name = commons.get_media_info_from_id(media_id)
             return file_name
 
         else:

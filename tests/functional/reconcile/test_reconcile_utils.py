@@ -226,11 +226,11 @@ class TestApiUtils(unittest.TestCase):
 
 
     def test_get_page_wikitext(self):
-        image_id = "M74698470"
+        media_id = "M74698470"
         with requests_mock.Mocker() as m:
             m.get("https://commons.wikimedia.org/w/api.php?action=parse&format=json&pageid=74698470&prop=wikitext",
                   text=self.commons_wikitext_data)
-            response = get_page_wikitext(image_id)
+            response = get_page_wikitext(media_id)
 
         self.assertEqual(response, json.loads(self.commons_wikitext_data)["parse"]["wikitext"]["*"])
 
@@ -312,7 +312,7 @@ class TestApiUtils(unittest.TestCase):
         self.assertEqual(check_result, "File:Commons-logo.svg")
 
 
-    def test_check_query_file_type_with_image_id(self):
+    def test_check_query_file_type_with_media_id(self):
         with requests_mock.Mocker() as m:
             m.get("https://commons.wikimedia.org/w/api.php?action=query&format=json&pageids=317966",
                   text=self.commons_id_page_query_data)
