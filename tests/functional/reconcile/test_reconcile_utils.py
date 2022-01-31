@@ -188,6 +188,8 @@ class TestApiUtils(unittest.TestCase):
         self.result_for_geocordinates = """{"str": "54.43941,-2.972027"}"""
         self.commons_id_page_query_data = """{"continue":{"iistart":"2014-04-10T10:05:06Z","continue":"||"},"query":{"pages":{"317966":{"pageid":317966,"ns":6,"title":"File:Commons-logo.svg","imagerepository":"local","imageinfo":[{"url":"https://upload.wikimedia.org/wikipedia/commons/4/4a/Commons-logo.svg"}]}}}}"""
 
+        self.entity_suggest_mock_data = """{"query":{"searchinfo": {"totalhits": 124800},"search":[{"title":"File:Parboiled rice with chicken, peppers, cucurbita, peas and tomato.jpg","pageid": 60008323}]}}"""
+        self.entity_suggest_sample_result = """{"result":[{"id":"M60008323","name": "File:Parboiled rice with chicken, peppers, cucurbita, peas and tomato.jpg"}]}"""
 
     def tearDown(self):
         pass
@@ -333,6 +335,15 @@ class TestApiUtils(unittest.TestCase):
             media_url, media_title = get_media_preview_url('M317966')
         self.assertEqual(media_url, "https://upload.wikimedia.org/wikipedia/commons/4/4a/Commons-logo.svg")
         self.assertEqual(media_title, "File:Commons-logo.svg")
+
+
+    def test_get_entity_suggest_result(self):
+        with requests_mock.Mocker() as m:
+            m.get("https://commons.wikimedia.org/w/api.php?action=query&list=search&srsearch=food&srnamespace=6&srlimit=10&format=json",
+                  text=self.entity_suggest_mock_data)
+            entity_suggest_result = processresults.get_entity_suggest_result('food', self.test_lang)
+
+        self.assertEqual(entity_suggest_result, json.loads(self.entity_suggest_sample_result))
 
 
 if __name__ == "__main__":

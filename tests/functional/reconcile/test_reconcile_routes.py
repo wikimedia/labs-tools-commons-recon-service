@@ -95,6 +95,9 @@ class TestApi(unittest.TestCase):
         self.quantity_extend_mock_data = """{"entities":{"M83698127": {"statements":{"P6790":[{"mainsnak":{"datavalue":{"value": {"amount": "+1.9"},"type": "quantity"}}}]}}}}"""
         self.quantity_wd_mock_data = """{"entities":{"P6790":{"type":"property","datatype":"quantity","id":"P6790","labels":{"en":{"language":"en","value":"f-number"}}}},"success":1}"""
         self.exted_quantity_result = """{"meta":[{"id": "P6790", "name": "f-number"}],"rows":{"M83698127":{"P6790":[{"str": "+1.9"}]}}}"""
+
+        self.entity_suggest_mock_data = """{"query":{"searchinfo": {"totalhits": 124800},"search":[{"title":"File:Parboiled rice with chicken, peppers, cucurbita, peas and tomato.jpg","pageid": 60008323}]}}"""
+        self.entity_suggest_sample_result = """{"result":[{"id":"M60008323","name": "File:Parboiled rice with chicken, peppers, cucurbita, peas and tomato.jpg"}]}"""
     # executed after each test
 
     def tearDown(self):
@@ -229,6 +232,18 @@ class TestApi(unittest.TestCase):
         response_data = json.loads(response.data.decode('utf8'))
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response_data, json.loads(self.exted_quantity_result))
+
+
+    def test_get_entity_suggest(self):
+        with requests_mock.Mocker() as m:
+            m.get("https://commons.wikimedia.org/w/api.php?action=query&list=search&srsearch=food&srnamespace=6&srlimit=10&format=json",
+                  text=self.entity_suggest_mock_data)
+            response = self.app.get('/en/api/suggest?prefix=food', follow_redirects=True)
+            response_data = json.loads(response.data.decode('utf8'))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response_data["result"][0]["id"], json.loads(self.entity_suggest_sample_result)["result"][0]["id"])
+        self.assertEqual(response_data["result"][0]["name"], json.loads(self.entity_suggest_sample_result)["result"][0]["name"])
 
 
 if __name__ == '__main__':
