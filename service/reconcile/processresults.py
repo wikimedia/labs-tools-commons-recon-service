@@ -374,3 +374,41 @@ def get_suggest_result(suggest_prefix, lang):
     wd_search_result = wikidata.make_suggest_request(suggest_prefix, lang)
 
     return wd_search_result
+
+
+def get_entity_suggest_result(suggest_prefix, lang):
+    """ Get entity suggest result data.
+
+        Parameters:
+            suggest_prefix (obj): suggest request term.
+            lang (str): Request language.
+
+        Returns:
+            entity_suggest_result (obj): Entity suggest result data.
+    """
+
+    entity_suggest_data = {}
+    entity_suggest_data["result"] = []
+
+    PARAMS = {
+        "action": "query",
+        "format": "json",
+        "list": "search",
+        "srsearch": suggest_prefix,
+        "srnamespace": 6,
+        "srlimit": 10,
+        "languages": lang
+    }
+
+    entity_suggest_search_result = commons.make_api_request(app.config["API_URL"], PARAMS)
+
+    entity_suggest_search_result = entity_suggest_search_result["query"]["search"]
+
+    if len(entity_suggest_search_result) > 0:
+        for result in entity_suggest_search_result:
+            entry = {}
+            entry["id"] = "M" + str(result["pageid"])
+            entry["name"] = result["title"]
+            entity_suggest_data["result"].append(entry)
+
+    return entity_suggest_data

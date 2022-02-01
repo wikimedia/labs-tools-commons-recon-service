@@ -18,6 +18,10 @@ def get_api_manifest(lang, service_url):
             "property": {
                 "service_path": "/suggest/properties",
                 "service_url": service_url
+            },
+            "entity": {
+                "service_path": "/suggest",
+                "service_url": service_url
             }
         }
     }

@@ -188,6 +188,8 @@ class TestApiUtils(unittest.TestCase):
         self.commons_id_page_query_data = """{"batchcomplete":"","query":{"pages":{"317966":{"pageid":317966,"ns":6,"title":"File:Commons-logo.svg"}}}}"""
         self.suggest_properties_caption_data = """{"result":[{"description": "Image Captions","id": "Cen","name": "Caption [en]"}]}"""
 
+        self.entity_suggest_mock_data = """{"query":{"searchinfo": {"totalhits": 124800},"search":[{"title":"File:Parboiled rice with chicken, peppers, cucurbita, peas and tomato.jpg","pageid": 60008323}]}}"""
+        self.entity_suggest_sample_result = """{"result":[{"id":"M60008323","name": "File:Parboiled rice with chicken, peppers, cucurbita, peas and tomato.jpg"}]}"""
 
     def tearDown(self):
         pass
@@ -328,6 +330,15 @@ class TestApiUtils(unittest.TestCase):
     def test_build_suggest_result_for_caption(self):
         result = processresults.build_suggest_result("Cen", "en", {})
         self.assertEqual(result, json.loads(self.suggest_properties_caption_data))
+
+
+    def test_get_entity_suggest_result(self):
+        with requests_mock.Mocker() as m:
+            m.get("https://commons.wikimedia.org/w/api.php?action=query&list=search&srsearch=food&srnamespace=6&srlimit=10&format=json",
+                  text=self.entity_suggest_mock_data)
+            entity_suggest_result = processresults.get_entity_suggest_result('food', self.test_lang)
+
+        self.assertEqual(entity_suggest_result, json.loads(self.entity_suggest_sample_result))
 
 
 if __name__ == "__main__":

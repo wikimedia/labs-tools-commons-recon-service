@@ -1,11 +1,11 @@
 import json
 
-from flask import Blueprint, request, jsonify, render_template
+from flask import Blueprint, request, jsonify, render_template, make_response
 from flask_cors import cross_origin
 
 from service.commons.commons import make_commons_search
 from service.manifest.manifest import get_api_manifest
-from service.reconcile.processresults import (build_extend_result, build_query_results, get_suggest_result)
+from service.reconcile.processresults import (build_extend_result, build_query_results, get_suggest_result, get_entity_suggest_result)
 from service.reconcile.handlefile import extract_file_names
 from service.reconcile.media_preview import build_preview_content
 
@@ -79,6 +79,20 @@ def get_suggest(lang):
         return jsonify(suggest_results)
     else:
         return "specify a prefix"
+
+
+@reconcile.route('/<string:lang>/api/suggest', methods=['GET'])
+@cross_origin()
+def get_entity_suggest(lang):
+    prefix = request.args.get("prefix", None)
+    if prefix:
+        suggest_results = get_entity_suggest_result(prefix, lang)
+        return jsonify(suggest_results)
+    else:
+        return make_response(jsonify({
+            "error": "error",
+            "message": "Missing prefix argument"
+        }), 400)
 
 
 @reconcile.route('/<string:lang>/api/preview', methods=['GET'])
