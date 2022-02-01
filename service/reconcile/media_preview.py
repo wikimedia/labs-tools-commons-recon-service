@@ -14,8 +14,8 @@ def build_preview_content(media_id):
     """
 
     media_url, media_title = get_media_preview_url(media_id)
-    preview_width = str(app.config["IMAGE_PREV_W"])
-    preview_height = str(app.config["IMAGE_PREV_H"])
+    preview_width = str(app.config["MEDIA_PREV_W"])
+    preview_height = str(app.config["MEDIA_PREV_H"])
     if media_url is not None and media_title is not None:
         return "<html><head><meta charset='utf-8' /></head>" \
             "<body> <img src=" + media_url + " width=" + preview_width + "\
