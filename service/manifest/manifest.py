@@ -1,5 +1,4 @@
 def get_api_manifest(lang, service_url):
-    print(service_url)
     manifest = {
         "versions": ["0.2"],
         'name': "Wikimedia Commons" + (' (%s)' % lang),
@@ -13,7 +12,12 @@ def get_api_manifest(lang, service_url):
             "width": 500,
             "height": 60
         },
-        "extend": {},
+        "extend": {
+            "propose_properties": {
+                "service_path": "/properties",
+                "service_url": service_url
+            }
+        },
         "suggest": {
             "property": {
                 "service_path": "/suggest/properties",

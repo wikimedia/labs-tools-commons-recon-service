@@ -109,6 +109,9 @@ class TestApi(unittest.TestCase):
 
         self.media_preview_video_file_mock_data = """{"query": {"pages": {"5762062": {"title": "File:Aljazeeraasset-WarOnGazaDay18793.ogv","imageinfo": [{"size": 84801115,"width": 720,"height": 576,"url": "https://upload.wikimedia.org/wikipedia/commons/f/f1/Aljazeeraasset-WarOnGazaDay18793.ogv"}]}}}}"""
         self.sample_media_video_preview_result = """<div width='1024' height='100px' style='position: fixed; overflow:hidden; width:400px'> <span style='float: left'><video style='width: 200px; height:60px' controls><source src=https://upload.wikimedia.org/wikipedia/commons/f/f1/Aljazeeraasset-WarOnGazaDay18793.ogv type='video/ogv'></span><span style='float: left; margin-top: -5px; margin-left: 10px'><p style=' color: #11c; font-weight: bold; position: fixed; font-size: 10px; font-family: Arial, sans-serif'>File:Aljazeeraasset-WarOnGazaDay18793.ogv </p></span><span style='float: left; margin-top:10px; margin-left: 10px'><p style='font-size: 10px;'>80.87 MB</p></span></div>"""
+        self.properties_suggest_result = """{"properties": [{"id": "wikitext","name": "Wikitext"},{"id": "P180","name": "depicts"},{"id": "P6243","name": "digital representation of"},{"id": "P921","name": "main subject"},{"id": "P170","name": "creator"},{"id": "P571","name": "inception"},{"id": "P1071","name": "location of creation"},{"id": "P195","name": "collection"},{"id": "P7482","name": "source of file"},{"id": "P6216","name": "copyright status"},{"id": "P275","name": "copyright license"},{"id": "P1259","name": "coordinates of the point of view"}],"type": "mediafile"}"""
+        self.properties_suggest_mock_data = """{"entities": {"P180": {"type": "property", "datatype": "wikibase-item", "id": "P180", "labels": {"en": {"language": "en", "value": "depicts"}}}, "P6243": {"type": "property", "datatype": "wikibase-item", "id": "P6243", "labels": {"en": {"language": "en", "value": "digital representation of"}}}, "P921": {"type": "property", "datatype": "wikibase-item", "id": "P921", "labels": {"en": {"language": "en", "value": "main subject"}}}, "P170": {"type": "property", "datatype": "wikibase-item", "id": "P170", "labels": {"en": {"language": "en", "value": "creator"}}}, "P571": {"type": "property", "datatype": "time", "id": "P571", "labels": {"en": {"language": "en", "value": "inception"}}}, "P1071": {"type": "property", "datatype": "wikibase-item", "id": "P1071", "labels": {"en": {"language": "en", "value": "location of creation"}}}, "P195": {"type": "property", "datatype": "wikibase-item", "id": "P195", "labels": {"en": {"language": "en", "value": "collection"}}}, "P7482": {"type": "property", "datatype": "wikibase-item", "id": "P7482", "labels": {"en": {"language": "en", "value": "source of file"}}}, "P6216": {"type": "property", "datatype": "wikibase-item", "id": "P6216", "labels": {"en": {"language": "en", "value": "copyright status"}}}, "P275": {"type": "property", "datatype": "wikibase-item", "id": "P275", "labels": {"en": {"language": "en", "value": "copyright license"}}}, "P1259": {"type": "property", "datatype": "globe-coordinate", "id": "P1259", "labels": {"en": {"language": "en", "value": "coordinates of the point of view"}}}}, "success": 1}"""
+
     # executed after each test
 
     def tearDown(self):
@@ -268,6 +271,16 @@ class TestApi(unittest.TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data.decode("utf-8") , self.sample_media_video_preview_result)
+
+
+    def test_suggest_properties(self):
+        with requests_mock.Mocker() as m:
+            m.get("https://www.wikidata.org/w/api.php?action=wbgetentities&format=json&languages=en&props=labels&ids=P180|P6243|P921|P170|P571|P1071|P195|P7482|P6216|P275|P1259",
+                  text=self.properties_suggest_mock_data)
+            response = self.app.get('en/api/properties?type=', follow_redirects=True)
+            response_data = json.loads(response.data.decode('utf8'))
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response_data, json.loads(self.properties_suggest_result))
 
 
 if __name__ == '__main__':

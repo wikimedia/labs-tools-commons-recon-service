@@ -5,3 +5,4 @@ WD_API_URL: "https://www.wikidata.org/w/api.php"
 SERVICE_URL: "https://commonsreconcile.toolforge.org"
 MEDIA_PREV_W: 100
 MEDIA_PREV_H: 50
+properties: [ "wikitext", "P180", "P6243", "P921", "P170", "P571", "P1071", "P195", "P7482", "P6216", "P275", "P1259" ] 

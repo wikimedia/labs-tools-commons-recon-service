@@ -5,6 +5,7 @@ from flask_cors import cross_origin
 
 from service.commons.commons import make_commons_search
 from service.manifest.manifest import get_api_manifest
+from service.properties.property_suggest import get_property_suggest_results
 from service.reconcile.processresults import (build_extend_result, build_query_results, get_suggest_result, get_entity_suggest_result)
 from service.reconcile.handlefile import extract_file_names
 from service.reconcile.media_preview import build_preview_content
@@ -79,6 +80,19 @@ def get_suggest(lang):
         return jsonify(suggest_results)
     else:
         return "specify a prefix"
+
+
+@reconcile.route('/<string:lang>/api/properties', methods=['GET'])
+@cross_origin()
+def get_property_suggestions(lang):
+    if "type" in request.args:
+        property_suggest_results = get_property_suggest_results(lang)
+        return jsonify(property_suggest_results)
+    else:
+        return make_response(jsonify({
+            "error": "error",
+            "message": "Missing prefix type"
+        }), 400)
 
 
 @reconcile.route('/<string:lang>/api/suggest', methods=['GET'])
