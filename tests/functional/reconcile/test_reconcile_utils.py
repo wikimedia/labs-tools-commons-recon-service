@@ -186,7 +186,7 @@ class TestApiUtils(unittest.TestCase):
         self.results_for_string_extend = """{"str": "572106"}"""
         self.result_for_geocordinates = """{"str": "54.43941,-2.972027"}"""
         self.commons_id_page_query_data = """{"batchcomplete":"","query":{"pages":{"317966":{"pageid":317966,"ns":6,"title":"File:Commons-logo.svg"}}}}"""
-        self.suggest_properties_caption_data = """{"result":[{"description": "Image Captions","id": "Cen","name": "Caption [en]"}]}"""
+        self.suggest_properties_caption_data = """{"result":[{"description": "file caption","id": "Cen","name": "Caption [en]"}]}"""
 
         self.entity_suggest_mock_data = """{"query":{"searchinfo": {"totalhits": 124800},"search":[{"title":"File:Parboiled rice with chicken, peppers, cucurbita, peas and tomato.jpg","pageid": 60008323}]}}"""
         self.entity_suggest_sample_result = """{"result":[{"id":"M60008323","name": "File:Parboiled rice with chicken, peppers, cucurbita, peas and tomato.jpg"}]}"""

@@ -335,7 +335,7 @@ def build_suggest_result(prefix, lang, wd_search_results):
             result_item = {}
             result_item["id"] = "C" + caption_lang
             result_item["name"] = "Caption [" + caption_lang + "]"
-            result_item["description"] = "Image Captions"
+            result_item["description"] = "file caption"
             suggest_result_data["result"].append(result_item)
 
     if "wikitext" in prefix.lower() or prefix.lower() in "wikitext":
