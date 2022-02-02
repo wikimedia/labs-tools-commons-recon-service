@@ -83,6 +83,12 @@ class TestApiUtils(unittest.TestCase):
                     "name": "File:Commons-logo.svg",
                     "score": 100,
                     "match": True
+                },
+            ],
+            "type": [
+                {
+                    "id": "mediafile",
+                    "name": "Media file"
                 }
             ]
         }
@@ -122,6 +128,12 @@ class TestApiUtils(unittest.TestCase):
                         "score": 100,
                         "match": True
                     }
+                ],
+                "type": [
+                    {
+                        "id": "mediafile",
+                        "name": "Media file"
+                    }
                 ]
             }
         }
@@ -134,6 +146,12 @@ class TestApiUtils(unittest.TestCase):
                         "score": 100,
                         "match": True
                     }
+                ],
+                "type": [
+                    {
+                        "id": "mediafile",
+                        "name": "Media file"
+                    }
                 ]
             },
             "q1": {
@@ -143,6 +161,12 @@ class TestApiUtils(unittest.TestCase):
                         "name": "File:Hudson Commons (95051).jpg",
                         "score": 100,
                         "match": True
+                    }
+                ],
+                "type": [
+                    {
+                        "id": "mediafile",
+                        "name": "Media file"
                     }
                 ]
             }

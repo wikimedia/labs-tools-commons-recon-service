@@ -29,8 +29,17 @@ def build_query_result_object(page):
     result_object["score"] = 100
     result_object["match"] = True
 
+    result_type = {
+        "id": "mediafile",
+        "name": "Media file"
+    }
+
     result_array.append(result_object)
     query_result_object["result"] = result_array
+
+    # Add result type to result object
+    query_result_object["type"] = [result_type]
+
 
     return query_result_object
 
