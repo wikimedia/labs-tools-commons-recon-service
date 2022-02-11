@@ -10,9 +10,9 @@ import requests_mock
 import json
 
 from service import app
-from service.commons.commons import make_api_request, get_page_wikitext, get_media_preview_url
+from service.commons.commons import make_api_request, get_page_wikitext, get_media_preview_data
 from service.reconcile import handlefile
-from service.reconcile import processresults
+from service.reconcile import processresults, media_preview
 
 
 class TestApiUtils(unittest.TestCase):
@@ -215,6 +215,14 @@ class TestApiUtils(unittest.TestCase):
         self.entity_suggest_mock_data = """{"query":{"searchinfo": {"totalhits": 124800},"search":[{"title":"File:Parboiled rice with chicken, peppers, cucurbita, peas and tomato.jpg","pageid": 60008323}]}}"""
         self.entity_suggest_sample_result = """{"result":[{"id":"M60008323","name": "File:Parboiled rice with chicken, peppers, cucurbita, peas and tomato.jpg"}]}"""
 
+        self.media_preview_mock_data = """{"query": {"pages": {"317966": {"title": "File:Commons-logo.svg","imageinfo": [{"size": 932,"width": 1024,"height": 1376,"url": "https://upload.wikimedia.org/wikipedia/commons/4/4a/Commons-logo.svg"}]}}}}"""
+        self.media_preview_sample_data = """{"title": "File:Commons-logo.svg", "url": "https://upload.wikimedia.org/wikipedia/commons/4/4a/Commons-logo.svg", "width": "1024", "height": "1376", "size": 932}"""
+
+
+        self.sample_media_preview_result = """<div width='1024' height='100px' style='position: fixed; overflow:hidden; width:400px'> <span style='float: left'><img style='padding-right: 5px' src=https://upload.wikimedia.org/wikipedia/commons/4/4a/Commons-logo.svg width=100                 height=50 style='float: left'></span><span style='float: left; margin-top: -10px'><p style='color: #11c; font-weight: bold; position: fixed; font-size: 10px; font-family: Arial, sans-serif'>File:Commons-logo.svg </p></span><span style='float: left; margin-top:20px'><p style='font-size: 10px;'>1024 x 1376; 932.0 B</p></span></div>"""
+        self.sample_media_audio_preview_result = """<div width='1024' height='100px' style='position: fixed; overflow:hidden; width:400px'> <span style='float: left'><audio style='width: 175px; height:30px' controls><source src=https://upload.wikimedia.org/wikipedia/commons/0/03/LL-Q105%28lns%29-Mndetatsin-m%C3%B3nl%C3%A8%28Lundi%29.wav type='audio/wav'></span><span style='float: left; margin-top: -5px; margin-left: 5px'><p style=' color: #11c; font-weight: bold; position: fixed; font-size: 10px; font-family: Arial, sans-serif'>File:LL-Q105(lns)-Mndetatsin-mónlè(Lundi).wav </p></span><span style='float: left; margin-top:10px; margin-left: 5px'><p style='font-size: 10px;'>207.05 KB</p></span></div>"""
+        self.sample_media_video_preview_result = """<div width='1024' height='100px' style='position: fixed; overflow:hidden; width:400px'> <span style='float: left'><video style='width: 200px; height:60px' controls><source src=https://upload.wikimedia.org/wikipedia/commons/f/f1/Aljazeeraasset-WarOnGazaDay18793.ogv type='video/ogv'></span><span style='float: left; margin-top: -5px; margin-left: 10px'><p style=' color: #11c; font-weight: bold; position: fixed; font-size: 10px; font-family: Arial, sans-serif'>File:Aljazeeraasset-WarOnGazaDay18793.ogv </p></span><span style='float: left; margin-top:10px; margin-left: 10px'><p style='font-size: 10px;'>80.87 MB</p></span></div>"""
+
     def tearDown(self):
         pass
 
@@ -363,6 +371,48 @@ class TestApiUtils(unittest.TestCase):
             entity_suggest_result = processresults.get_entity_suggest_result('food', self.test_lang)
 
         self.assertEqual(entity_suggest_result, json.loads(self.entity_suggest_sample_result))
+
+
+    def test_get_media_preview_data(self):
+        with requests_mock.Mocker() as m:
+            m.get("https://commons.wikimedia.org/w/api.php?action=query&pageids=317966&format=json&prop=imageinfo&iiprop=url%7Csize",
+                  text=self.media_preview_mock_data)
+            preview_media_data = media_preview.get_media_preview_data('M317966')
+
+        self.assertEqual(preview_media_data, json.loads(self.media_preview_sample_data))
+
+
+    def test_convert_size(self):
+        converted_size = media_preview.convert_size(932)
+        self.assertEqual(converted_size, "932.0 B")
+
+
+    def test_build_preview_file_from_type_image(self):
+        preview_width = app.config["MEDIA_PREV_W"]
+        preview_height = app.config["MEDIA_PREV_H"]
+        sample_test_url = "https://upload.wikimedia.org/wikipedia/commons/4/4a/Commons-logo.svg"
+        expected_dom = media_preview.build_preview_file_from_type(sample_test_url, "File:Commons-logo.svg", str(preview_width),
+                                                                  str(preview_height), file_width="1024", file_height="1376", file_size=932)
+        self.assertEqual(expected_dom, self.sample_media_preview_result)
+
+    def test_build_preview_file_from_type_audio(self):
+        preview_width = app.config["MEDIA_PREV_W"]
+        preview_height = app.config["MEDIA_PREV_H"]
+
+        sample_test_url = "https://upload.wikimedia.org/wikipedia/commons/0/03/LL-Q105%28lns%29-Mndetatsin-m%C3%B3nl%C3%A8%28Lundi%29.wav"
+        expected_dom = media_preview.build_preview_file_from_type(sample_test_url, "File:LL-Q105(lns)-Mndetatsin-mónlè(Lundi).wav", str(preview_width),
+                                                                  str(preview_height), file_width="1024", file_height="1376", file_size=212016)
+        self.assertEqual(expected_dom, self.sample_media_audio_preview_result)
+
+
+    def test_build_preview_file_from_type_video(self):
+        preview_width = app.config["MEDIA_PREV_W"]
+        preview_height = app.config["MEDIA_PREV_H"]
+
+        sample_test_url = "https://upload.wikimedia.org/wikipedia/commons/f/f1/Aljazeeraasset-WarOnGazaDay18793.ogv"
+        expected_dom = media_preview.build_preview_file_from_type(sample_test_url, "File:Aljazeeraasset-WarOnGazaDay18793.ogv", str(preview_width),
+                                                                  str(preview_height), file_width="1024", file_height="1376", file_size=84801115)
+        self.assertEqual(expected_dom, self.sample_media_video_preview_result)
 
 
 if __name__ == "__main__":

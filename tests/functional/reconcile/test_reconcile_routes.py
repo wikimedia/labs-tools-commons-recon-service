@@ -87,7 +87,6 @@ class TestApi(unittest.TestCase):
 
         self.commons_id_page_query_data = """{"batchcomplete":"","query":{"pages":{"317966":{"pageid":317966,"ns":6,"title":"File:Commons-logo.svg"}}}}"""
         self.commons_media_url_query_data = """{"continue":{"iistart":"2014-04-10T10:05:06Z"},"query":{"pages":{"317966":{"pageid":317966,"title":"File:Commons-logo.svg","imageinfo":[{"url":"https://upload.wikimedia.org/wikipedia/commons/4/4a/Commons-logo.svg"}]}}}}"""
-        self.sample_preview_result = """<html><head><meta charset='utf-8' /></head><body> <img src=https://upload.wikimedia.org/wikipedia/commons/4/4a/Commons-logo.svg width=100            height=50 style='float: left'><p>File:Commons-logo.svg </p> </body></html>"""
 
         self.monolingual_extend_mock_data = """{"entities":{"M3630407": {"statements":{"P9533":[{"mainsnak":{"datavalue": {"value": {"text": "Idiot","language": "de"},"type": "monolingualtext"}}}]}}}}"""
         self.wd_monolingual_extend_mock_data = """{"entities":{"P9533":{"type": "property","datatype": "monolingualtext","id":"P9533","labels":{"en": {"language": "en","value": "audio transcription"}}}}}"""
@@ -101,6 +100,15 @@ class TestApi(unittest.TestCase):
 
         self.entity_suggest_mock_data = """{"query":{"searchinfo": {"totalhits": 124800},"search":[{"title":"File:Parboiled rice with chicken, peppers, cucurbita, peas and tomato.jpg","pageid": 60008323}]}}"""
         self.entity_suggest_sample_result = """{"result":[{"id":"M60008323","name": "File:Parboiled rice with chicken, peppers, cucurbita, peas and tomato.jpg"}]}"""
+
+        self.media_preview_mock_data = """{"query": {"pages": {"317966": {"title": "File:Commons-logo.svg","imageinfo": [{"size": 932,"width": 1024,"height": 1376,"url": "https://upload.wikimedia.org/wikipedia/commons/4/4a/Commons-logo.svg"}]}}}}"""
+        self.sample_media_preview_result = """<div width='1024' height='100px' style='position: fixed; overflow:hidden; width:400px'> <span style='float: left'><img style='padding-right: 5px' src=https://upload.wikimedia.org/wikipedia/commons/4/4a/Commons-logo.svg width=100                 height=50 style='float: left'></span><span style='float: left; margin-top: -10px'><p style='color: #11c; font-weight: bold; position: fixed; font-size: 10px; font-family: Arial, sans-serif'>File:Commons-logo.svg </p></span><span style='float: left; margin-top:20px'><p style='font-size: 10px;'>1024 x 1376; 932.0 B</p></span></div>"""
+
+        self.media_preview_audio_file_mock_data = """{"query": {"pages": {"112471826": {"title": "File:LL-Q105(lns)-Mndetatsin-mónlè(Lundi).wav","imageinfo": [{"size": 212016,"width": 0,"height": 0,"url": "https://upload.wikimedia.org/wikipedia/commons/0/03/LL-Q105%28lns%29-Mndetatsin-m%C3%B3nl%C3%A8%28Lundi%29.wav"}]}}}}"""
+        self.sample_media_audio_preview_result = """<div width='1024' height='100px' style='position: fixed; overflow:hidden; width:400px'> <span style='float: left'><audio style='width: 175px; height:30px' controls><source src=https://upload.wikimedia.org/wikipedia/commons/0/03/LL-Q105%28lns%29-Mndetatsin-m%C3%B3nl%C3%A8%28Lundi%29.wav type='audio/wav'></span><span style='float: left; margin-top: -5px; margin-left: 5px'><p style=' color: #11c; font-weight: bold; position: fixed; font-size: 10px; font-family: Arial, sans-serif'>File:LL-Q105(lns)-Mndetatsin-mónlè(Lundi).wav </p></span><span style='float: left; margin-top:10px; margin-left: 5px'><p style='font-size: 10px;'>207.05 KB</p></span></div>"""
+
+        self.media_preview_video_file_mock_data = """{"query": {"pages": {"5762062": {"title": "File:Aljazeeraasset-WarOnGazaDay18793.ogv","imageinfo": [{"size": 84801115,"width": 720,"height": 576,"url": "https://upload.wikimedia.org/wikipedia/commons/f/f1/Aljazeeraasset-WarOnGazaDay18793.ogv"}]}}}}"""
+        self.sample_media_video_preview_result = """<div width='1024' height='100px' style='position: fixed; overflow:hidden; width:400px'> <span style='float: left'><video style='width: 200px; height:60px' controls><source src=https://upload.wikimedia.org/wikipedia/commons/f/f1/Aljazeeraasset-WarOnGazaDay18793.ogv type='video/ogv'></span><span style='float: left; margin-top: -5px; margin-left: 10px'><p style=' color: #11c; font-weight: bold; position: fixed; font-size: 10px; font-family: Arial, sans-serif'>File:Aljazeeraasset-WarOnGazaDay18793.ogv </p></span><span style='float: left; margin-top:10px; margin-left: 10px'><p style='font-size: 10px;'>80.87 MB</p></span></div>"""
     # executed after each test
 
     def tearDown(self):
@@ -227,6 +235,39 @@ class TestApi(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response_data["result"][0]["id"], json.loads(self.entity_suggest_sample_result)["result"][0]["id"])
         self.assertEqual(response_data["result"][0]["name"], json.loads(self.entity_suggest_sample_result)["result"][0]["name"])
+
+
+    def test_preview_media_file_image(self):
+        with requests_mock.Mocker() as m:
+            m.get("https://commons.wikimedia.org/w/api.php?action=query&pageids=317966&format=json&prop=imageinfo&iiprop=url%7Csize",
+                  text=self.media_preview_mock_data)
+
+            response = self.app.get("/en/api/preview?id=M317966", follow_redirects=True)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data.decode("utf-8") , self.sample_media_preview_result)
+
+
+    def test_preview_media_file_audio(self):
+        with requests_mock.Mocker() as m:
+            m.get("https://commons.wikimedia.org/w/api.php?action=query&pageids=112471826&format=json&prop=imageinfo&iiprop=url%7Csize",
+                  text=self.media_preview_audio_file_mock_data)
+
+            response = self.app.get("/en/api/preview?id=M112471826", follow_redirects=True)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data.decode("utf-8") , self.sample_media_audio_preview_result)
+
+
+    def test_preview_media_file_video(self):
+        with requests_mock.Mocker() as m:
+            m.get("https://commons.wikimedia.org/w/api.php?action=query&pageids=5762062&format=json&prop=imageinfo&iiprop=url%7Csize",
+                  text=self.media_preview_video_file_mock_data)
+
+            response = self.app.get("/en/api/preview?id=M5762062", follow_redirects=True)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data.decode("utf-8") , self.sample_media_video_preview_result)
 
 
 if __name__ == '__main__':

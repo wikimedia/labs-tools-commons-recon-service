@@ -10,8 +10,8 @@ def get_api_manifest(lang, service_url):
         },
         "preview": {
             "url": service_url + "/preview?id={{id}}",
-            "width": 200,
-            "height": 100
+            "width": 500,
+            "height": 60
         },
         "extend": {},
         "suggest": {

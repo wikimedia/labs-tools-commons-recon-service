@@ -98,7 +98,7 @@ def get_page_wikitext(media_id):
     return page_data["parse"]["wikitext"]["*"]
 
 
-def get_media_preview_url(media_id):
+def get_media_preview_data(media_id):
     """Get the url of a Commons media file
 
     Args:
@@ -113,15 +113,18 @@ def get_media_preview_url(media_id):
         "pageids": media_id,
         "format": "json",
         "prop": "imageinfo",
-        "iiprop": "url"
+        "iiprop": "url|size"
     }
-
+    preview_data = {}
     media_data = make_api_request(app.config["API_URL"], PARAMS)
 
     if "query" in media_data.keys() and media_id in media_data["query"]["pages"].keys():
-        media_title = media_data["query"]["pages"][media_id]["title"]
-        media_url = media_data["query"]["pages"][media_id]["imageinfo"][0]["url"]
-        return media_url, media_title
+        preview_data["title"] = media_data["query"]["pages"][media_id]["title"]
+        preview_data["url"] = media_data["query"]["pages"][media_id]["imageinfo"][0]["url"]
+        preview_data["width"] = str(media_data["query"]["pages"][media_id]["imageinfo"][0]["width"])
+        preview_data["height"] = str(media_data["query"]["pages"][media_id]["imageinfo"][0]["height"])
+        preview_data["size"] = media_data["query"]["pages"][media_id]["imageinfo"][0]["size"]
+        return preview_data
     else:
         return "", "File not Found"
 
