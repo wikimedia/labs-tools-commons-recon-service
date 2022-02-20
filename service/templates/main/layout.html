@@ -2,9 +2,9 @@
 <html lang={{ session_language }}>
 	<head>
 		{% if title %}
-		<title> CRS - {{ title }}</title>
+		<title>Wikimedia Commons Reconciliation Service - {{ title }}</title>
 		{% else %}
-			<title> Commons Reconciliation Service </title>
+			<title>Wikimedia Commons Reconciliation Service</title>
 		{% endif%}
 		<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1">
@@ -15,7 +15,7 @@
 	<body>
 
         {% block content%} {% endblock content%}
-    
+
         <!-- Footer -->
         <!-- <footer class="footer bg-light">
             <div class="container">
@@ -35,8 +35,8 @@
         <!-- Scripts -->
         <script src="https://tools-static.wmflabs.org/cdnjs/ajax/libs/jquery/3.3.1/jquery.js"></script>
         <script src="https://tools-static.wmflabs.org/cdnjs/ajax/libs/twitter-bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
-        
+
         {% block scripts %} {% endblock scripts %}
-    
+
     </body>
 </html>

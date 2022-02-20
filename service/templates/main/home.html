@@ -3,20 +3,38 @@
     <div class="container text-center page-header">
         <div class="desc-page">
             <h1 class="service-title">
-                <a href="https://commons.wikimedia.org"> Wikimedia Commons</a>
-                Reconciliation for
-                <a href="http://openrefine.org/">OpenRefine</a>
+                <a href="https://commons.wikimedia.org"> Wikimedia Commons</a> reconciliation for <a href="http://openrefine.org/">OpenRefine</a>
             </h1>
-            <p class="baseline-text">This is a reconciliation service for structured data on Wikimedia Commons to be used by OpenRefine.</p>
-            <p>Use the following URL in OpenRefine: <a href="{{host}}"> {{host}} </a></p>
-            <p>Replacing "en" by another language code will display items and properties in your language, when they are available.</p>
-
-            <p>This interface works with OpenRefine from 2.6 rc2 onwards. It is not compatible with Google Refine.</p>
-
+            <p class="baseline-text">This web service aligns ('reconciles') file names/paths of Wikimedia Commons files with their corresponding <a href="https://www.mediawiki.org/wiki/Extension:WikibaseMediaInfo#MediaInfo_Entity">MediaInfo entity URIs</a> (M-ids). Via data extraction, the Wikitext, multilingual file captions and other <a href="https://commons.wikimedia.org/wiki/Commons:Structured_data">structured data</a> of these files can then be retrieved for further processing in OpenRefine.</p>
+            <p><em>This interface works with OpenRefine from 2.6 rc2 onwards. It is not compatible with Google Refine.</em></p>
+            <p>Use the following URL in OpenRefine: <strong><a href="https://commonsreconcile.toolforge.org/en/api"> https://commonsreconcile.toolforge.org/en/api</a></strong></p>
+            <p>Replacing <code>en</code> with another language code will display items and properties in that language, if they are available.</p>
+            <h2>How do I use this service in OpenRefine?</h2>
+            <p><iframe src="https://commons.wikimedia.org/wiki/File:Demo_of_the_Wikimedia_Commons_Reconciliation_Service_in_OpenRefine.webm?embedplayer=yes" width="640" height="312" frameborder="0" ></iframe><br/><em>Demo video in English, 3'25"</em></p>
+            <h3>Reconciling</h3>
+            <p>You can find <a href="https://docs.openrefine.org/manual/reconciling">general documentation about reconciling in OpenRefine's manual</a>.</p>
             <ul>
-                <li><a href="https://reconciliation-api.github.io/specs/latest/">Documentation of the protocol</a></li>
-                <li><a href="https://gerrit.wikimedia.org/r/admin/repos/labs/tools/commons-recon-service">Source code</a></li>
-                <li><a href="https://phabricator.wikimedia.org/tag/reconciliation/">Workboard and issue tracker</a></li>
+                <li>Create or open a project in OpenRefine which contains a column with Wikimedia Commons file names / file paths.</li>
+                <li>Use this column's dropdown menu to select <code>Reconcile</code> → <code>Start reconciling</code>.</li>
+                <li>If you have not added the Wikimedia Commons Reconciliation service yet, click <code>Add standard service...</code> and paste in the URL: <a href="https://commonsreconcile.toolforge.org/en/api"> https://commonsreconcile.toolforge.org/en/api</a> (you can replace <code>en</code> with another language code of your choice).</li>
+                <li>Next, click <code>Start reconciling</code>.</li>
+            </ul>
+
+            <h3>Extract Wikitext and other structured data columns ("data extension")</h3>
+            <p>With the Wikimedia Commons Reconciliation Service, you can create additional columns in your OpenRefine project which contain the Wikitext and various structured data of your Wikimedia Commons files.</p>
+            <ul>
+                <li>Use your reconciled (file paths) column's dropdown menu to select <code>Edit column</code> → <code>Add columns from reconciled values...</code></li>
+                <li>Next, you can manually type the names (labels) of properties you are interested in, or select from the list of suggestions.</li>
+                <ul>
+                    <li>Type (or select) <code>Wikitext</code> to retrieve the files' Wikitext</li>
+                    <li>In order to retrieve multilingual file captions from the files in a given language, type <code>C</code> followed by the two-letter language code of this language. For instance: <code>Cen</code> will produce file captions in English; <code>Cja</code> will produce file captions in Japanese.</li>
+                </ul>
+            </ul>
+<h2>For developers</h2>
+            <ul>
+                <li><a href="https://reconciliation-api.github.io/specs/latest/">Reconciliation Service API - A protocol for data matching on the Web</a> (documentation of the protocol)</li>
+                <li><a href="https://gerrit.wikimedia.org/r/admin/repos/labs/tools/commons-recon-service">Source code</a> of the Wikimedia Commons Reconciliation Service (gerrit.wikimedia.org)</li>
+                <li><a href="https://phabricator.wikimedia.org/tag/reconciliation/">Workboard and issue tracker</a> of the Wikimedia Commons Reconciliation Service (gerrit.wikimedia.org)</li>
             </ul>
         </div>
     </div>
