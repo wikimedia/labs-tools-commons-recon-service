@@ -7,7 +7,7 @@
             </h1>
             <p class="baseline-text">This web service aligns ('reconciles') file names/paths of Wikimedia Commons files with their corresponding <a href="https://www.mediawiki.org/wiki/Extension:WikibaseMediaInfo#MediaInfo_Entity">MediaInfo entity URIs</a> (M-ids). Via data extraction, the Wikitext, multilingual file captions and other <a href="https://commons.wikimedia.org/wiki/Commons:Structured_data">structured data</a> of these files can then be retrieved for further processing in OpenRefine.</p>
             <p><em>This interface works with OpenRefine from 2.6 rc2 onwards. It is not compatible with Google Refine.</em></p>
-            <p>Use the following URL in OpenRefine: <strong><a href="https://commonsreconcile.toolforge.org/en/api"> https://commonsreconcile.toolforge.org/en/api</a></strong></p>
+            <p>Use the following URL in OpenRefine: <strong><a href="{{host}}">{{host}}</a></strong></p>
             <p>Replacing <code>en</code> with another language code will display items and properties in that language, if they are available.</p>
             <h2>How do I use this service in OpenRefine?</h2>
             <p><iframe src="https://commons.wikimedia.org/wiki/File:Demo_of_the_Wikimedia_Commons_Reconciliation_Service_in_OpenRefine.webm?embedplayer=yes" width="640" height="312" frameborder="0" ></iframe><br/><em>Demo video in English, 3'25"</em></p>
@@ -16,7 +16,7 @@
             <ul>
                 <li>Create or open a project in OpenRefine which contains a column with Wikimedia Commons file names / file paths.</li>
                 <li>Use this column's dropdown menu to select <code>Reconcile</code> → <code>Start reconciling</code>.</li>
-                <li>If you have not added the Wikimedia Commons Reconciliation service yet, click <code>Add standard service...</code> and paste in the URL: <a href="https://commonsreconcile.toolforge.org/en/api"> https://commonsreconcile.toolforge.org/en/api</a> (you can replace <code>en</code> with another language code of your choice).</li>
+                <li>If you have not added the Wikimedia Commons Reconciliation service yet, click <code>Add standard service...</code> and paste in the URL: <a href="{{host}}">{{host}}</a> (you can replace <code>en</code> with another language code of your choice).</li>
                 <li>Next, click <code>Start reconciling</code>.</li>
             </ul>
 
