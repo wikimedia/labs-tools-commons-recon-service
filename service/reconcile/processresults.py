@@ -8,6 +8,7 @@ from service import app
 from service.commons import commons
 from service.wikidata import wikidata
 from service.reconcile import handlefile
+from service.utils.utils import InvalidInputDataException
 
 
 def build_query_result_object(page):
@@ -204,8 +205,11 @@ def build_extend_rows_info(extend_ids, extend_properties, lang):
 
     properties = commons.make_api_request(app.config["API_URL"], PARAMS)
 
+    # check if the input is valid - Mids
     if "entities" in properties.keys():
         extend_entities = properties["entities"]
+    else:
+        raise InvalidInputDataException("Invalid input provided")
 
     # Adjust rows object by already adding
     build_row_data(rows_data["rows"], extend_ids)
