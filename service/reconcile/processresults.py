@@ -4,11 +4,13 @@
 
 
 import re
+from unittest import result
 from service import app
 from service.commons import commons
 from service.wikidata import wikidata
 from service.reconcile import handlefile
 from service.utils.utils import InvalidInputDataException
+from service.utils import utils
 
 
 def build_query_result_object(page):
@@ -58,20 +60,22 @@ def build_query_results(query_data, results):
     """
 
     overall_query_object = {}
+    query_values_all = []
 
     query_labels = list(query_data.keys())
-    query_values = [handlefile.check_query_file_type(value["query"]) for value in query_data.values()]
-
+    # query_values = [handlefile.check_query_file_type(value["query"]) for value in query_data.values()]
     result_values = list(results.values())
 
+    # For easy comparison we place all files in our result set
+    for res in results.keys():
+        query_values_all.append(results[res]["title"])
+
+
     for i in range(0, len(result_values)):
-
-        best_match_file = handlefile.find_best_match_file(query_values, result_values[i]["title"])
-        element_index_in_results = query_values.index(best_match_file)
-
+        element_index_in_results = query_values_all.index(query_values_all[i])
         if "pageid" in result_values[i]:
 
-            # Files are sorted by commons api so we find the results index in query data\
+            # Files are sorted by commons api so we find the results index in query data
             # we look for index of best_match string
             # In case where no file in our queries matches the result we return an empty set
 
@@ -179,6 +183,32 @@ def build_dataset_values(claim_object, data_value):
     return claim_object
 
 
+def get_property_batches(extend_ids, lang):
+    """Hit commons api with batch queries
+
+    Args:
+        extend_ids list: List of media ids for extension
+
+    Returns:
+        properties dict: Dictionary of combined batch results
+    """
+    overall_batch_results = {}
+    overall_batch_results["entities"] = {}
+    batches = [extend_ids[i : i + 50] for i in range(0, len(extend_ids), 50)]
+    for batch in batches:
+        batch_properties = {}
+        PARAMS = {
+            "action": "wbgetentities",
+            "format": "json",
+            "languages": lang,
+            "ids": "|".join(id for id in batch)
+        }
+        batch_properties = commons.make_api_request(app.config["API_URL"], PARAMS)
+        if "error" not in batch_properties.keys():
+            overall_batch_results["entities"] = utils.merge_two_batch_dicts(overall_batch_results["entities"], batch_properties["entities"])
+    return overall_batch_results
+
+
 def build_extend_rows_info(extend_ids, extend_properties, lang):
     """ Build extend object of the data extension result.
 
@@ -196,21 +226,19 @@ def build_extend_rows_info(extend_ids, extend_properties, lang):
     rows_data["rows"] = {}
     captions_langs = []
 
-    PARAMS = {
-        "action": "wbgetentities",
-        "format": "json",
-        "languages": lang,
-        "ids": "|".join(id for id in extend_ids)
-    }
-
-    properties = commons.make_api_request(app.config["API_URL"], PARAMS)
+    # We want to perform batch queries in groups of 50:limit for Commons API
+    properties = get_property_batches(extend_ids, lang)
 
     # check if the input is valid - Mids
     if "entities" in properties.keys():
         extend_entities = properties["entities"]
     else:
         raise InvalidInputDataException("Invalid input provided")
+    # properties = commons.make_api_request(app.config["API_URL"], PARAMS)
 
+    if "entities" in extend_entities.keys():
+        extend_entities = extend_entities["entities"]
+    # return extend_entities
     # Adjust rows object by already adding
     build_row_data(rows_data["rows"], extend_ids)
 
@@ -248,26 +276,28 @@ def build_extend_rows_info(extend_ids, extend_properties, lang):
                     # Iterate every statement in the claim and get the valus
                     for statement in extend_entities[row_data]["statements"][prop["id"]]:
 
-                        # we check for statements which do not have same dataset
-                        if statement["mainsnak"]["datavalue"]["type"] == "wikibase-entityid":
-                            wd_items_list.append(statement["mainsnak"]["datavalue"]["value"]["id"])
+                        # "datavalue" may not exist in mainsnak keys:add this test
+                        if "datavalue" in statement["mainsnak"].keys():
+                            # we check for statements which do not have same dataset
+                            if statement["mainsnak"]["datavalue"]["type"] == "wikibase-entityid":
+                                wd_items_list.append(statement["mainsnak"]["datavalue"]["value"]["id"])
 
-                        elif statement["mainsnak"]["datavalue"]["type"] == "monolingualtext":
-                            text = statement["mainsnak"]["datavalue"]["value"]['text']
-                            text_lang = statement["mainsnak"]["datavalue"]["value"]["language"]
-                            rows_data["rows"][row_data][prop["id"]] = []
-                            rows_data["rows"][row_data][prop["id"]].append({"str": text + " [" + text_lang + "]"})
+                            elif statement["mainsnak"]["datavalue"]["type"] == "monolingualtext":
+                                text = statement["mainsnak"]["datavalue"]["value"]['text']
+                                text_lang = statement["mainsnak"]["datavalue"]["value"]["language"]
+                                rows_data["rows"][row_data][prop["id"]] = []
+                                rows_data["rows"][row_data][prop["id"]].append({"str": text + " [" + text_lang + "]"})
 
-                        elif statement["mainsnak"]["datavalue"]["type"] == "quantity":
-                            amount = statement["mainsnak"]["datavalue"]["value"]["amount"]
-                            rows_data["rows"][row_data][prop["id"]] = []
-                            rows_data["rows"][row_data][prop["id"]].append({"str": amount})
+                            elif statement["mainsnak"]["datavalue"]["type"] == "quantity":
+                                amount = statement["mainsnak"]["datavalue"]["value"]["amount"]
+                                rows_data["rows"][row_data][prop["id"]] = []
+                                rows_data["rows"][row_data][prop["id"]].append({"str": amount})
 
-                        else:
-                            wd_claim_object = {}
-                            data_value = statement["mainsnak"]["datavalue"]
-                            wd_claim_object = build_dataset_values({}, data_value)
-                            rows_data["rows"][row_data][prop["id"]].append(wd_claim_object)
+                            else:
+                                wd_claim_object = {}
+                                data_value = statement["mainsnak"]["datavalue"]
+                                wd_claim_object = build_dataset_values({}, data_value)
+                                rows_data["rows"][row_data][prop["id"]].append(wd_claim_object)
 
                 # Make call to Wd to get the entitis info
                 wd_items_and_labels = wikidata.get_wikidata_entity_label(wd_items_list, lang)
@@ -322,7 +352,6 @@ def build_extend_result(extend_data, lang):
 
         extend_results["meta"] = meta_info
         extend_results["rows"] = rows_data
-
         return extend_results
     else:
         return {}
@@ -362,11 +391,11 @@ def build_suggest_result(prefix, lang, wd_search_results):
 
 
     elif wd_search_results is not None:
-        for result in wd_search_results:
+        for result_data in wd_search_results:
             result_item = {}
-            result_item["id"] = result["id"]
-            result_item["name"] = result["label"]
-            result_item["description"] = result["description"]
+            result_item["id"] = result_data["id"]
+            result_item["name"] = result_data["label"]
+            result_item["description"] = result_data["description"]
 
             # Criteria to get notables will be determined later
             suggest_result_data["result"].append(result_item)
@@ -418,10 +447,10 @@ def get_entity_suggest_result(suggest_prefix, lang):
     entity_suggest_search_result = entity_suggest_search_result["query"]["search"]
 
     if len(entity_suggest_search_result) > 0:
-        for result in entity_suggest_search_result:
+        for result_item in entity_suggest_search_result:
             entry = {}
-            entry["id"] = "M" + str(result["pageid"])
-            entry["name"] = result["title"]
+            entry["id"] = "M" + str(result_item["pageid"])
+            entry["name"] = result_item["title"]
             entity_suggest_data["result"].append(entry)
 
     return entity_suggest_data

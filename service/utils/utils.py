@@ -70,3 +70,9 @@ def return_invalid_input_object(e):
         "error": "error",
         "message": e.message
     }
+
+
+def merge_two_batch_dicts(batch1, batch2):
+    merged_batch = batch1.copy()
+    merged_batch.update(batch2)
+    return merged_batch

@@ -10,7 +10,7 @@ import unittest
 import json
 
 from service import app
-from service.utils.utils import validate_input, check_valid_json
+from service.utils.utils import validate_input, check_valid_json, merge_two_batch_dicts
 
 
 class TestUtils(unittest.TestCase):
@@ -64,6 +64,13 @@ class TestUtils(unittest.TestCase):
         response_data = json.loads(response.data.decode("utf-8"))
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response_data, json.loads(self.invalid_input_response_data))
+
+
+    def test_merge_two_batch_dicts(self):
+        batch_one = {'a': 1, 'b': 2}
+        batch_two = {'b': 3, 'c': 4}
+        merged_batches = merge_two_batch_dicts(batch_one, batch_two)
+        self.assertEqual(merged_batches, {'a': 1, 'b': 3, 'c': 4})
 
 
 if __name__ == "__main__":
