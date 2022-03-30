@@ -60,27 +60,19 @@ def build_query_results(query_data, results):
     """
 
     overall_query_object = {}
-    query_values_all = []
-
     query_labels = list(query_data.keys())
-    # query_values = [handlefile.check_query_file_type(value["query"]) for value in query_data.values()]
+    query_values = [handlefile.check_query_file_type(value["query"]) for value in query_data.values()]
     result_values = list(results.values())
 
-    # For easy comparison we place all files in our result set
-    for res in results.keys():
-        query_values_all.append(results[res]["title"])
-
-
-    for i in range(0, len(result_values)):
-        element_index_in_results = query_values_all.index(query_values_all[i])
+    for i in range(len(result_values)):
+        best_match_file = handlefile.find_best_match_file(query_values, result_values[i]["title"])
+        element_index_in_results = query_values.index(best_match_file)
         if "pageid" in result_values[i]:
-
             # Files are sorted by commons api so we find the results index in query data
             # we look for index of best_match string
             # In case where no file in our queries matches the result we return an empty set
 
             overall_query_object[query_labels[element_index_in_results]] = build_query_result_object(result_values[i])
-
         else:
             overall_query_object[query_labels[element_index_in_results]] = {"result": []}
 
