@@ -4,7 +4,7 @@
 
 
 from service.commons import commons
-
+from service import app
 
 def check_query_file_type(file_name):
     """ Check file type from query data

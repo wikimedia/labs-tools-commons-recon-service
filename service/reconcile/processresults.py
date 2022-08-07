@@ -27,7 +27,7 @@ def build_query_result_object(page):
     result_array = []
     query_result_object = {}
 
-    result_object["id"] = "M" + str(page["pageid"])
+    result_object["id"] = 'M' + str(page["pageid"])
     result_object["name"] = page["title"]
     result_object["score"] = 100
     result_object["match"] = True
@@ -441,7 +441,7 @@ def get_entity_suggest_result(suggest_prefix, lang):
     if len(entity_suggest_search_result) > 0:
         for result_item in entity_suggest_search_result:
             entry = {}
-            entry["id"] = "M" + str(result_item["pageid"])
+            entry["id"] = 'M' + str(result_item["pageid"])
             entry["name"] = result_item["title"]
             entity_suggest_data["result"].append(entry)
 

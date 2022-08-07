@@ -91,7 +91,7 @@ def get_page_wikitext(media_id):
         "format": "json",
         "prop": "wikitext",
         "language": "en",
-        "pageid": media_id.split("M")[1]
+        "pageid": media_id[len('M'):]
     }
 
     page_data = make_api_request(app.config["API_URL"], PARAMS)
@@ -107,7 +107,8 @@ def get_media_preview_data(media_id):
     Returns:
         url, title (str): strings of media file url and the media title
     """
-    media_id = media_id.split("M")[1]
+    media_id = media_id[len('M'):]
+
     PARAMS = {
         "action": "query",
         "pageids": media_id,

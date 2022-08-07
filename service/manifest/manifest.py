@@ -1,11 +1,14 @@
+from service import app
+
+
 def get_api_manifest(lang, service_url):
     manifest = {
         "versions": ["0.2"],
-        'name': "Wikimedia Commons" + (' (%s)' % lang),
-        "identifierSpace": "https://commons.wikimedia.org/entity/",
-        "schemaSpace": "http://www.wikidata.org/prop/direct/",
+        'name': app.config['SERVICE_NAME'] + (' (%s)' % lang),
+        "identifierSpace": app.config['IDENTIFIER_SPACE'],
+        "schemaSpace": app.config['SCHEMA_SPACE'],
         "view": {
-            "url": "https://commons.wikimedia.org/entity/{{id}}"
+            "url": app.config['VIEW_TEMPLATE'],
         },
         "preview": {
             "url": service_url + "/preview?id={{id}}",

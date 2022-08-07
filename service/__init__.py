@@ -10,14 +10,15 @@ CORS(app, resources={r"/api/*": {"origins": "*"}})
 
 config_file = 'config.yaml'
 
-if os.path.isfile(config_file):
+__dir__ = os.path.dirname(__file__)
+config_path = os.path.join(__dir__, config_file)
+
+if os.path.isfile(config_path):
     # Load configuration from YAML file
-    __dir__ = os.path.dirname(__file__)
     app.config.update(
-        yaml.safe_load(open(os.path.join(__dir__, config_file))))
+        yaml.safe_load(open(config_path)))
 
 else:
-    __dir__ = os.path.dirname(__file__)
     app.config.update(
         yaml.safe_load(open(os.path.join(__dir__, 'test_config.yaml'))))
 

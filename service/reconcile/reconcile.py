@@ -1,5 +1,5 @@
 import json
-from flask import Blueprint, request, jsonify, render_template, make_response
+from flask import Blueprint, request, jsonify, render_template, make_response, redirect
 from flask_cors import cross_origin
 
 from service.commons.commons import make_commons_search
@@ -10,6 +10,7 @@ from service.reconcile.handlefile import extract_file_names
 from service.reconcile.media_preview import build_preview_content
 from service.utils.utils import catch_custom_exception, validate_input, return_invalid_input_object
 from service.normalize.normalize import InvalidInputDataException
+from service import app
 
 reconcile = Blueprint('reconcile', __name__)
 
@@ -133,3 +134,22 @@ def preview_media_file(lang):
 
     preview_content = build_preview_content(media_id)
     return preview_content
+
+@reconcile.route('/redirect_entity', methods=['GET'])
+@cross_origin()
+def redirect_entity():
+    """
+    Utility introduced to redirect a Mid to the corresponding
+    file on the wiki, even if the wiki does not support MediaInfo
+    entities but just file uploads
+    """
+
+    media_id = request.args.get("id", None)
+    if media_id:
+        pageid = media_id[len('M'):]
+        return redirect(app.config['INDEX_URL']+'?curid='+pageid)
+    else:
+        return make_response(jsonify({
+            "error": "error",
+            "message": "Missing id"
+        }), 400)
